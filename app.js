@@ -41,6 +41,8 @@ server.listen(port, function() {
     console.log('Server running at port:' + port);
 });
 
+
+
 parse.findMany('responses', '', function(err, res) {
     if (err) {
         console.log('this is fucked up');
