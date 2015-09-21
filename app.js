@@ -8,7 +8,7 @@ var Parse = require('node-parse-api').Parse;
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var sentiment = require('sentiment');
-var port = process.env.PORT;//9000;app.set('port', process.env.PORT || 3000);
+var port = 9000;//process.env.PORT;//9000;app.set('port', process.env.PORT || 3000);
 var messageArray = [];
 var choicesFunc = [];
 
@@ -42,31 +42,18 @@ server.listen(port, function() {
 });
 
 
-var resResults = [];
 
-var Responses = Parse.Object.extend("responses");
-var query = new Parse.Query(Responses);
-query.limit(1000);
-query.find({
-  success: function(results) {
-    alert("Successfully retrieved " + results.length + " scores.");
-    // Do something with the returned Parse.Object values
-    resResults = results;
-    // for (var i = 0; i < results.length; i++) {
-    //   var object = results[i];
-    //   alert(object.id + ' - ' + object.get('playerName'));
-    // }
-  },
-  error: function(error) {
-    alert("Error: " + error.code + " " + error.message);
-  }
-});
+var query = {
+  limit: 1000,
+  skip: 0
+};
 
-// parse.findMany('responses', '', function(err, res) {
-//     if (err) {
-//         console.log('this is fucked up');
-//     }
-//     var resResults = res.results;
+parse.find('responses', query, function(err, res) {
+    if (err) {
+        console.log('this ain\'t workin');
+    }
+    var resResults = res.results;
+    console.log('Number of responses retrieved is ' + resResults.length);
 
 
     for (var j = 0; j < resResults.length; j++) {
