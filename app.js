@@ -37,7 +37,7 @@ app.use(function(req, res, next) {
 
 app.use('/', express.static(__dirname + '/public'));
 
-server.listen(port, function() {
+server.listen(process.env.PORT || 9000, function() {
     console.log('Server running at port:' + port);
 });
 
