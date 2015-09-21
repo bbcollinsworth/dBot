@@ -42,12 +42,31 @@ server.listen(port, function() {
 });
 
 
+var resResults = [];
 
-parse.findMany('responses', '', function(err, res) {
-    if (err) {
-        console.log('this is fucked up');
-    }
-    var resResults = res.results;
+var Responses = Parse.Object.extend("responses");
+var query = new Parse.Query(Responses);
+query.limit(1000);
+query.find({
+  success: function(results) {
+    alert("Successfully retrieved " + results.length + " scores.");
+    // Do something with the returned Parse.Object values
+    resResults = results;
+    // for (var i = 0; i < results.length; i++) {
+    //   var object = results[i];
+    //   alert(object.id + ' - ' + object.get('playerName'));
+    // }
+  },
+  error: function(error) {
+    alert("Error: " + error.code + " " + error.message);
+  }
+});
+
+// parse.findMany('responses', '', function(err, res) {
+//     if (err) {
+//         console.log('this is fucked up');
+//     }
+//     var resResults = res.results;
 
 
     for (var j = 0; j < resResults.length; j++) {
