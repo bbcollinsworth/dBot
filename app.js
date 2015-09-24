@@ -85,11 +85,6 @@ parse.find('responses', query, function(err, res) {
 
 app.post('/', function(req, res) {
     console.log(req.body);
-    // console.log(req.body);
-    // console.log(req.body['p_food']);
-    // console.log(req.body['p_quantity']);
-    // console.log(req.body['p_expiration']);
-    //if (id != existing id), create new...(insert)...else update
 
     parse.insert('submissions', {
         // time: req.body[time],
@@ -112,19 +107,12 @@ app.post('/', function(req, res) {
 
 var userIDs = [];
 var users = [];
-//var recentResponses = [];
 
 //.on = listener function (for an event)
 //everything on the server happens in .on scope
 io.on('connection', function(socket) {
     /*––––––––––– SOCKET.IO starts here –––––––––––––––*/
 
-    /*
-	.on
-	.emit
-	.broadcast
-
-    */
     //logging user id
     var sock = socket.id;
     console.log('The user ' + sock + ' just connected.');
@@ -192,7 +180,7 @@ io.on('connection', function(socket) {
         console.log("working");
         var response = _userResponse.toLowerCase();
         var parsedResponse = response.split(/[\s,.?!&:()]+/);
-        //var parsedResponse = response.split(/[\s,.&:()]+?!/); //?!
+        
         if (response.indexOf("?") !== -1) {
             parsedResponse.push("?");
         }
@@ -224,15 +212,10 @@ io.on('connection', function(socket) {
             data: {
                 itemName: thisUser.currentMessage.objectId, //nextChoiceName,//nextMessage[index].messageText;
                 msg: thisUser.currentMessage.messageText
-                //userChoices: nextChoicesForUser,
-                //background: newBackground,
-                // past: pastChoice
             }
         });
-        //compareChoice(parsedChoice, _currentChoice, _userID, _userName);
     }
 
-    //var nextMessage = {};
 
     function updateRecentMessages(_user, _message) {
         _user.recentMessages.push({
@@ -259,8 +242,6 @@ io.on('connection', function(socket) {
         console.log(_user.recentMessages);
     }
 
-    //var userResponse;
-
     function pickNextMessage(_currentMessage, _parsedResponse, _recentMessages) {
         var pickedMessage = {};
         console.log("Pick Next Message Called");
@@ -273,7 +254,7 @@ io.on('connection', function(socket) {
                 return pickedMessage;
                 console.log("This message has one possible path");
                 console.log("Next message is: " + pickedMessage.messageText);
-                //} else if (_currentMessage.nextNodes.length > 1) {
+                
             } else {
                 console.log("This message has multiple possible paths");
                 pickedMessage = matchTriggers(_parsedResponse, _recentMessages, _currentMessage.nextNodes); //call matchtriggers, but with limits to specific options
@@ -282,13 +263,11 @@ io.on('connection', function(socket) {
             }
         } else {
             console.log("I know nextNodes is undefined");
-            //} else if (nextNodes == undefined) {
-            //var allNextNodes = getFullDBIndex();
+        
             pickedMessage = matchTriggers(_parsedResponse, _recentMessages);
             console.log("Next Picked Message: " + pickedMessage.messageText);
             console.log("Index of next message: " + pickedMessage.messageIndex);
             return pickedMessage;
-            //pickedMessage = matchTriggers(_parsedResponse, allNextNodes); //match triggers for everything
         }
 
     }
@@ -312,13 +291,10 @@ io.on('connection', function(socket) {
 
         console.log("NextNodesArray Length after recentCheck is: " + nextNodesArray.length);
 
-
         var matchedMessage = {};
-
         var matchCounts = [];
         var matchCountMax = 0;
 
-        //for (var n = 0; n < nextNodesArray.length; n++) {
         for (var n in nextNodesArray) {
 
             var matchCount = 0;
@@ -329,14 +305,12 @@ io.on('connection', function(socket) {
             nextTriggersArray = messageArray[indexToCheck].triggers;
 
             if (nextTriggersArray != undefined) {
-                //for (var thisTerm in parsedRes) {
-                for (var w = 0; w < parsedRes.length; w++) {
+                for (var w in parsedRes) {
 
                     var termToCompare = parsedRes[w];
 
                     for (var t in nextTriggersArray) {
-                        //for (var t = 0; t < nextTriggersArray.length; t++) {
-
+                        
                         var triggerToCheck = nextTriggersArray[t];
                         //OR FOR WEIGHTED MATCH:
                         ////var triggerToCheck = tempTriggers[t].value;
@@ -428,9 +402,7 @@ io.on('connection', function(socket) {
     }
 
     function randomResponse(recent) {
-        //var randomIndex;
 
-        //if (nodesToSearch == undefined){
         var allAvailIndices = getFullDBIndex(true);
 
         spliceRecentlyUsed(allAvailIndices,recent);
@@ -438,9 +410,7 @@ io.on('connection', function(socket) {
         randomIndex = Math.floor(Math.random() * allAvailIndices.length);
 
         var randResIndex = allAvailIndices[randomIndex];
-        //} else {
-        //  randomIndex = Math.floor(Math.random()*nodesToSearch.length);
-        //}
+        
         var randRes = messageArray[randResIndex];
         return randRes;
     }
