@@ -8,9 +8,11 @@ var Parse = require('node-parse-api').Parse;
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var sentiment = require('sentiment');
-var port = 9000;//process.env.PORT;//9000;app.set('port', process.env.PORT || 3000);
+var port = 9000; //process.env.PORT;//9000;app.set('port', process.env.PORT || 3000);
 var messageArray = [];
 var choicesFunc = [];
+
+var responsesBeforeRepeatAllowed = 15;
 
 var options = {
     app_id: '9X7zv5iCaJ4LlAEN9wD1A3886geFH942KB3zo4um',
@@ -44,8 +46,8 @@ server.listen(process.env.PORT || 9000, function() {
 
 
 var query = {
-  limit: 1000,
-  skip: 0
+    limit: 1000,
+    skip: 0
 };
 
 parse.find('responses', query, function(err, res) {
@@ -110,6 +112,7 @@ app.post('/', function(req, res) {
 
 var userIDs = [];
 var users = [];
+//var recentResponses = [];
 
 //.on = listener function (for an event)
 //everything on the server happens in .on scope
@@ -142,7 +145,8 @@ io.on('connection', function(socket) {
             "currentMessage": messageArray[0],
             "nextMessage": {},
             "gameStarted": false,
-            "size": ''
+            "size": '',
+            "recentMessages": []
         });
 
 
@@ -207,10 +211,12 @@ io.on('connection', function(socket) {
         console.log("This User is: " + thisUser.socketID);
         console.log("Current message for this User: " + thisUser.currentMessage.messageText);
 
-        thisUser.nextMessage = pickNextMessage(thisUser.currentMessage, parsedResponse);
+        thisUser.nextMessage = pickNextMessage(thisUser.currentMessage, parsedResponse, thisUser.recentMessages);
         console.log("Next message for this User: " + thisUser.nextMessage.messageText);
         console.log("Index of next message: " + thisUser.nextMessage.messageIndex);
         console.log("TRUE index of next message: " + messageArray.indexOf(thisUser.nextMessage));
+
+        updateRecentMessages(thisUser, thisUser.nextMessage);
 
         thisUser.currentMessage = thisUser.nextMessage;
 
@@ -228,9 +234,34 @@ io.on('connection', function(socket) {
 
     //var nextMessage = {};
 
+    function updateRecentMessages(_user, _message) {
+        _user.recentMessages.push({
+            text: _message.messageText,
+            index: _message.messageIndex,
+            timer: responsesBeforeRepeatAllowed
+        });
+
+        //could just splice off first array item when
+        //length greater than certain #, as proxy for timer;
+        //but this allows different time limits on different messages
+        //if we ever wanted that functionality
+        for (var m in _user.recentMessages) {
+            var thisMsg = _user.recentMessages[m];
+            thisMsg.timer -= 1;
+            if (thisMsg.timer <= 0) {
+                _user.recentMessages.splice(m, 1);
+            }
+            console.log("RecentMessages new length: " + _user.recentMessages.length);
+
+        }
+
+        console.log("This user's recent messages updated: ");
+        console.log(_user.recentMessages);
+    }
+
     //var userResponse;
 
-    function pickNextMessage(_currentMessage, _parsedResponse) {
+    function pickNextMessage(_currentMessage, _parsedResponse, _recentMessages) {
         var pickedMessage = {};
         console.log("Pick Next Message Called");
         //console.log("Next Nodes of this message: " + _currentMessage.nextNodes.length);
@@ -245,7 +276,7 @@ io.on('connection', function(socket) {
                 //} else if (_currentMessage.nextNodes.length > 1) {
             } else {
                 console.log("This message has multiple possible paths");
-                pickedMessage = matchTriggers(_parsedResponse, _currentMessage.nextNodes); //call matchtriggers, but with limits to specific options
+                pickedMessage = matchTriggers(_parsedResponse, _recentMessages, _currentMessage.nextNodes); //call matchtriggers, but with limits to specific options
                 return pickedMessage;
                 console.log("Next message is: " + pickedMessage);
             }
@@ -253,30 +284,19 @@ io.on('connection', function(socket) {
             console.log("I know nextNodes is undefined");
             //} else if (nextNodes == undefined) {
             //var allNextNodes = getFullDBIndex();
-            pickedMessage = matchTriggers(_parsedResponse);
+            pickedMessage = matchTriggers(_parsedResponse, _recentMessages);
             console.log("Next Picked Message: " + pickedMessage.messageText);
             console.log("Index of next message: " + pickedMessage.messageIndex);
             return pickedMessage;
             //pickedMessage = matchTriggers(_parsedResponse, allNextNodes); //match triggers for everything
         }
 
-
-
     }
 
-    function matchTriggers(parsedRes, nextNodesArray) {
+    function matchTriggers(parsedRes, recentArray, nextNodesArray) {
         console.log("Match Triggers called");
 
         var limitRandomToNextNodes;
-
-        // if (nextNodesArray == undefined) {
-        //     console.log("NextNodesArray is undefined...getting fullDB");
-        //     nextNodesArray = getFullDBIndex();
-        //     limitRandomToNextNodes = false;
-        // } else {
-        //     limitRandomToNextNodes = true;
-        //     console.log("NextNodesArray is defined...limiting to next nodes");
-        // }
 
         if (nextNodesArray != undefined) {
             limitRandomToNextNodes = true;
@@ -286,20 +306,26 @@ io.on('connection', function(socket) {
             limitRandomToNextNodes = false;
         }
 
-        console.log("NextNodesArray Length is: " + nextNodesArray.length);
+        console.log("NextNodesArray Length before recentCheck is: " + nextNodesArray.length);
+
+        spliceRecentlyUsed(nextNodesArray, recentArray);
+
+        console.log("NextNodesArray Length after recentCheck is: " + nextNodesArray.length);
+
 
         var matchedMessage = {};
 
         var matchCounts = [];
         var matchCountMax = 0;
 
-        for (var n = 0; n < nextNodesArray.length; n++) {
+        //for (var n = 0; n < nextNodesArray.length; n++) {
+        for (var n in nextNodesArray) {
 
             var matchCount = 0;
 
             var indexToCheck = nextNodesArray[n];
-            console.log("Next nodes Index to check: " + indexToCheck);
-            console.log("Triggers at nextNodes: " + messageArray[indexToCheck].triggers);
+            //console.log("Next nodes Index to check: " + indexToCheck);
+            //console.log("Triggers at nextNodes: " + messageArray[indexToCheck].triggers);
             nextTriggersArray = messageArray[indexToCheck].triggers;
 
             if (nextTriggersArray != undefined) {
@@ -308,8 +334,8 @@ io.on('connection', function(socket) {
 
                     var termToCompare = parsedRes[w];
 
-                    //for (var t in nextTriggersArray) {
-                    for (var t = 0; t < nextTriggersArray.length; t++) {
+                    for (var t in nextTriggersArray) {
+                        //for (var t = 0; t < nextTriggersArray.length; t++) {
 
                         var triggerToCheck = nextTriggersArray[t];
                         //OR FOR WEIGHTED MATCH:
@@ -348,7 +374,7 @@ io.on('connection', function(socket) {
             } else {
                 //randomIndex
                 console.log("No matches - I am sending a random response!");
-                matchedMessage = randomResponse(); // THIS NEEDS TO BE SET
+                matchedMessage = randomResponse(recentArray); // THIS NEEDS TO BE SET
                 return matchedMessage;
             }
         } else if (matchCounts.length == 1) {
@@ -374,21 +400,48 @@ io.on('connection', function(socket) {
         //return matchedMessage;
     }
 
+    function spliceRecentlyUsed(arrayOfIndices, _recentArray){
+        //checks each index in this array of indices to see if it matches
+        //index of a message that was recently used
+        for (var i in arrayOfIndices) {
+
+            var indexMatched = false;
+
+            for (var j in _recentArray) {
+                if (_recentArray[j].index == arrayOfIndices[i]) {
+                    indexMatched = true;
+                    break;
+                }
+            }
+
+            if (indexMatched) {
+                console.log("Splicing Message Index " + arrayOfIndices[i]);
+                arrayOfIndices.splice(i, 1);
+            }
+        }
+    }
+
+
     function getRandomIndex(arrayLength) {
         var randI = Math.floor(Math.random() * arrayLength);
         return randI;
     }
 
-    function randomResponse() {
+    function randomResponse(recent) {
         //var randomIndex;
 
         //if (nodesToSearch == undefined){
         var allAvailIndices = getFullDBIndex(true);
+
+        spliceRecentlyUsed(allAvailIndices,recent);
+
         randomIndex = Math.floor(Math.random() * allAvailIndices.length);
+
+        var randResIndex = allAvailIndices[randomIndex];
         //} else {
         //  randomIndex = Math.floor(Math.random()*nodesToSearch.length);
         //}
-        var randRes = messageArray[randomIndex];
+        var randRes = messageArray[randResIndex];
         return randRes;
     }
 
@@ -403,8 +456,11 @@ io.on('connection', function(socket) {
 
             for (var i = 0; i < messageArray.length; i++) {
                 if (messageArray[i].canBeNewTopic == true) {
-                    //fullDBIndex.push(messageArray[i].messageIndex);
+
+                    //var recentlyUsed = checkIndexAgaintRecent(i, thisUser.recentMessages);
+                    //if (!recentlyUsed) {
                     fullDBIndex.push(i);
+                    //}
                     //console.log("Adding to full DB");
                     // console.log("messageIndex pushed: " + messageIndex);
                 }
@@ -416,7 +472,6 @@ io.on('connection', function(socket) {
             var fullDBIndex = [];
 
             for (var i = 0; i < messageArray.length; i++) {
-                //fullDBIndex.push(messageArray[i].messageIndex);
                 fullDBIndex.push(i);
                 //console.log("messageIndex pushed: " + messageIndex);
             }
@@ -424,134 +479,9 @@ io.on('connection', function(socket) {
             return fullDBIndex;
         }
 
-
-
     }
 
 
-    // //compare choice against existing choiceNameArray and choiceName if only one word
-    // function compareChoice(uniqueID, triggers, socketID, user) {
-    //     console.log('currentChoice: ' + currentChoice);
-
-    //     //if the user responds with only one word, use that word and compare to choiceName
-    //     if (choiceArray.length < 2) {
-    //         // for (var a in choiceArray){
-    //         //     for (var b in choices){
-    //         //         if (choiceArray[a] == choices[b].choiceName){
-
-    //         //         }
-    //         //     }
-    //         // }
-
-    //         for (var c in choiceArray) {
-    //             //acount for simple yes/no answer
-    //             if (choiceArray[c] == 'yes' || choiceArray[c] == 'no' || choiceArray[c] == 'me' || choiceArray[c] == 'you' || choiceArray[c] == 'lee' || choiceArray[c] == 'sam' || choiceArray[c] == 'jessie' || choiceArray[c] == 'alex') {
-
-    //                 var userChoiceName = choiceArray[c] + '_' + currentChoice;
-    //                 console.log('userChoiceName: ' + userChoiceName);
-
-    //                 // for (var n in choices) {
-    //                 // if (userChoiceName == choices[n].choiceName) {
-    //                 // console.log('choices[n].choiceName: ' + choices[n].choiceName);
-    //                 executeChoice(userChoiceName, socketID, user);
-    //                 // } else {
-    //                 //     executeChoice('error2', socketID, user);
-    //                 // }
-    //                 // }
-
-    //             } else {
-    //                 var match = false;
-    //                 for (var y in choices) {
-    //                     if (choiceArray[c] == choices[y].choiceName) {
-    //                         match = true;
-    //                         executeChoice(choices[y].choiceName, socketID, user);
-    //                     }
-    //                 }
-    //                 if (!match) {
-    //                     executeChoice('error2', socketID, user);
-    //                 }
-    //             }
-    //         }
-    //     } else {
-    //         //run through the choiceNameArray and increment match counter when finding matches
-    //         for (var y in choices) {
-    //             for (var x in choices[y].choiceNameArray) {
-    //                 for (var z in choiceArray) {
-    //                     if (choiceArray[z] == choices[y].choiceNameArray[x]) {
-    //                         choices[y].match = choices[y].match + 1;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         //find highest match number and user that choiceName
-    //         var highestMatch = 1;
-    //         var highestMatchIndex = -1;
-    //         for (var y in choices) {
-    //             if (choices[y].match > highestMatch) {
-    //                 highestMatch = choices[y].match;
-    //                 highestMatchIndex = y;
-    //             }
-    //             choices[y].match = 0;
-    //         }
-    //         if (highestMatchIndex > -1) {
-    //             var userChoiceName = choices[highestMatchIndex].choiceName;
-    //             console.log("MATCHED CHOICE NAME: " + userChoiceName);
-    //             executeChoice(userChoiceName, socketID, user);
-    //         } else {
-    //             // send error message
-    //             executeChoice('error', socketID, user);
-    //         }
-    //     }
-    // }
-
-    // function executeChoice(userChoice, userID, userName) {
-    //     var nextChoiceName;
-    //     var nextMsgForUser;
-    //     var nextChoicesForUser;
-    //     var newBackground;
-    //     var pastChoice;
-
-    //     for (var i = 0; i < choices.length; i++) {
-    //         //if user's choice matches with choice in the array then execute consequence function
-    //         if (userChoice == choices[i].choiceName) {
-    //             //run through choicesFunc array
-    //             for (var j in choicesFunc) {
-    //                 if (choices[i].choiceName == choicesFunc[j].choiceName) {
-    //                     // console.log("consequence func called: "+choicesFunc[j].choiceConsequence);
-    //                     choicesFunc[j].choiceConsequence(userName);
-    //                 };
-    //             }
-
-
-    //==============================================
-    //THIS STUFF COULD STILL BE GOOD / USEFUL:
-    //==============================================
-
-    //             pastChoice = choices[i].choiceName;
-    //             //reset nextChoices
-    //             nextChoiceName = choices[i].choiceName;
-    //             nextMsgForUser = choices[i].messageText;
-    //             nextChoicesForUser = choices[i].nextChoices;
-    //             newBackground = choices[i].bgImage;
-    //             //push names into choiceVisitor array
-    //             choices[i].choiceVisitors.push(userName);
-
-    //             // console.log("Next Msg: " + nextMsgForUser + " | " + nextChoicesForUser + " : " + userID + " | " + userName);
-    //         }
-    //     }
-    //     //emit choice response to specific user
-    //     //change to users.sam;
-    //     io.to(userID).emit('choiceResponse', {
-    //         data: {
-    //             itemName: nextMessage.objectId, //nextChoiceName,//nextMessage[index].messageText;
-    //             msg: nextMessage.messageText,
-    //             //userChoices: nextChoicesForUser,
-    //             //background: newBackground,
-    //             past: pastChoice
-    //         }
-    //     });
-
-    // }
 
     //when a client connects to server, broadcast to everyone
     io.sockets.emit('current users', {
@@ -561,14 +491,6 @@ io.on('connection', function(socket) {
 
     var nodeCounter;
 
-    // //WHAT TO DO WHEN USER SENDS A CHOICE
-    // socket.on('userResponse', function(res) {
-    //     console.log(res.userResponse);
-    //     console.log("Their full res is:");
-    //     console.log(res);
-
-    //     parseResponse(res.uniqueID, res.userResponse, socket.id, res.user);
-    // });
 
     //****LISTENS FOR USER DISCONNECT****
     socket.on('disconnect', function() {
@@ -592,19 +514,3 @@ io.on('connection', function(socket) {
         data: socket.id
     });
 });
-
-
-
-// function readyToAccuse() {
-//     for (var i in players) {
-//         if (players[i].visited.length > 2 && players[i].visited.length % 3 == 0) {
-//             console.log("YES 3 is the magic number");
-//             io.to(players[i].id).emit('accusePlayers', {
-//                 data: {
-//                     msg: 'Based on what we\'ve seen, do you think you know who killed Lee? Yes or no?',
-//                     currentChoice: 'accuse'
-//                 }
-//             });
-//         }
-//     }
-// }
