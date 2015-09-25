@@ -44,6 +44,35 @@ server.listen(process.env.PORT || 9000, function() {
 });
 
 
+//*TEST* INDIVIDUAL QUERY FUNCTIONS -
+//WOULD NEED ASYNC CALLBACKS TO WORK
+//========================================
+// function indexQuery(i) {
+//     var query = {
+//         where: {
+//             index: i
+//         },
+//     };
+//     return query;
+// }
+
+// function getMessageFromParse(i) {
+
+//     var queryResult = 'bad';
+//     parse.find('responses', { where: {
+//             messageIndex: i
+//         } }, function(err, res) {
+//         if (err) {
+//             console.log('this ain\'t workin');
+//         }
+//         console.log('Number of responses retrieved is ' + res.results.length);
+//         console.log('Parse message retrieved ' + res.results[0].messageText);
+//         queryResult = res.results[0];
+        
+//     });
+//     return queryResult;
+// }
+//========================================
 
 var query = {
     limit: 1000,
@@ -107,6 +136,7 @@ app.post('/', function(req, res) {
 
 var userIDs = [];
 var users = [];
+//var startMessage = getMessageFromParse(0);
 
 //.on = listener function (for an event)
 //everything on the server happens in .on scope
@@ -121,6 +151,8 @@ io.on('connection', function(socket) {
 
     setTimeout(function() {
         var startMessage = messageArray[0];
+        //var startMessage = getMessageFromParse(0);
+        //console.log(getMessageFromParse(0));
 
         console.log("Start Message Data: ");
         console.log(startMessage.messageText);
@@ -180,7 +212,7 @@ io.on('connection', function(socket) {
         console.log("working");
         var response = _userResponse.toLowerCase();
         var parsedResponse = response.split(/[\s,.?!&:()]+/);
-        
+
         if (response.indexOf("?") !== -1) {
             parsedResponse.push("?");
         }
@@ -254,7 +286,7 @@ io.on('connection', function(socket) {
                 return pickedMessage;
                 console.log("This message has one possible path");
                 console.log("Next message is: " + pickedMessage.messageText);
-                
+
             } else {
                 console.log("This message has multiple possible paths");
                 pickedMessage = matchTriggers(_parsedResponse, _recentMessages, _currentMessage.nextNodes); //call matchtriggers, but with limits to specific options
@@ -263,7 +295,7 @@ io.on('connection', function(socket) {
             }
         } else {
             console.log("I know nextNodes is undefined");
-        
+
             pickedMessage = matchTriggers(_parsedResponse, _recentMessages);
             console.log("Next Picked Message: " + pickedMessage.messageText);
             console.log("Index of next message: " + pickedMessage.messageIndex);
@@ -310,7 +342,7 @@ io.on('connection', function(socket) {
                     var termToCompare = parsedRes[w];
 
                     for (var t in nextTriggersArray) {
-                        
+
                         var triggerToCheck = nextTriggersArray[t];
                         //OR FOR WEIGHTED MATCH:
                         ////var triggerToCheck = tempTriggers[t].value;
@@ -374,10 +406,10 @@ io.on('connection', function(socket) {
         //return matchedMessage;
     }
 
-    function spliceRecentlyUsed(arrayOfIndices, _recentArray){
+    function spliceRecentlyUsed(arrayOfIndices, _recentArray) {
         //checks each index in this array of indices to see if it matches
         //index of a message that was recently used
-        
+
         for (var j in _recentArray) {
             var indexMatched = false;
 
@@ -402,12 +434,12 @@ io.on('connection', function(socket) {
 
         var allAvailIndices = getFullDBIndex(true);
 
-        spliceRecentlyUsed(allAvailIndices,recent);
+        spliceRecentlyUsed(allAvailIndices, recent);
 
         randomIndex = Math.floor(Math.random() * allAvailIndices.length);
 
         var randResIndex = allAvailIndices[randomIndex];
-        
+
         var randRes = messageArray[randResIndex];
         return randRes;
     }
