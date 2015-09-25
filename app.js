@@ -202,7 +202,7 @@ io.on('connection', function(socket) {
         thisUser.nextMessage = pickNextMessage(thisUser.currentMessage, parsedResponse, thisUser.recentMessages);
         console.log("Next message for this User: " + thisUser.nextMessage.messageText);
         console.log("Index of next message: " + thisUser.nextMessage.messageIndex);
-        console.log("TRUE index of next message: " + messageArray.indexOf(thisUser.nextMessage));
+        //console.log("TRUE index of next message: " + messageArray.indexOf(thisUser.nextMessage));
 
         updateRecentMessages(thisUser, thisUser.nextMessage);
 
