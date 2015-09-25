@@ -128,7 +128,7 @@ io.on('connection', function(socket) {
 
         users.push({
             "socketID": socket.id,
-            "index": users.length - 1,
+            "index": users.length,
             "name": '',
             "currentMessage": messageArray[0],
             "nextMessage": {},
@@ -377,23 +377,46 @@ io.on('connection', function(socket) {
     function spliceRecentlyUsed(arrayOfIndices, _recentArray){
         //checks each index in this array of indices to see if it matches
         //index of a message that was recently used
-        for (var i in arrayOfIndices) {
-
+        
+        for (var j in _recentArray) {
             var indexMatched = false;
 
-            for (var j in _recentArray) {
+            for (var i in arrayOfIndices) {
                 if (_recentArray[j].index == arrayOfIndices[i]) {
                     indexMatched = true;
+                    console.log("Splicing Message Index " + arrayOfIndices[i]);
+                    arrayOfIndices.splice(i, 1);
                     break;
                 }
             }
 
-            if (indexMatched) {
-                console.log("Splicing Message Index " + arrayOfIndices[i]);
-                arrayOfIndices.splice(i, 1);
-            }
+            // if (indexMatched) {
+            //     console.log("Splicing Message Index " + arrayOfIndices[i]);
+            //     arrayOfIndices.splice(i, 1);
+            // }
         }
     }
+
+    // function spliceRecentlyUsed(arrayOfIndices, _recentArray){
+    //     //checks each index in this array of indices to see if it matches
+    //     //index of a message that was recently used
+    //     for (var i in arrayOfIndices) {
+
+    //         var indexMatched = false;
+
+    //         for (var j in _recentArray) {
+    //             if (_recentArray[j].index == arrayOfIndices[i]) {
+    //                 indexMatched = true;
+    //                 break;
+    //             }
+    //         }
+
+    //         if (indexMatched) {
+    //             console.log("Splicing Message Index " + arrayOfIndices[i]);
+    //             arrayOfIndices.splice(i, 1);
+    //         }
+    //     }
+    // }
 
 
     function getRandomIndex(arrayLength) {
