@@ -59,7 +59,7 @@ var attachEvents = function() {
         var heSaid = $('#heSaid').val();
         var iSaid = $('#iSaid').val();
         var time = Date.now();
-        console.log(heSaid+' : '+iSaid+' : ');
+        console.log(heSaid + ' : ' + iSaid + ' : ');
 
         $.post('/', {
             time: time,
@@ -98,7 +98,7 @@ var attachEvents = function() {
         setTimeout(function() {
             socket.emit('userResponse', {
                 user: userID,
-                userResponse: userChat, //,
+                userResponse: userChat //, //,
                 //currentChoice: current
             });
         }, 500);
@@ -170,30 +170,30 @@ socket.on('botMessage', function(res) {
     //     //}, 4000);
     // }
 
-   // setTimeout(function() {
-        var tplToCompile = $('#tpl-bot-chat').html();
-        var compiled = _.template(tplToCompile)({
-            timestamp: _.now(),
-            data: res.data
-        });
+    // setTimeout(function() {
+    var tplToCompile = $('#tpl-bot-chat').html();
+    var compiled = _.template(tplToCompile)({
+        timestamp: _.now(),
+        data: res.data
+    });
 
-        //current = res.data.past;
-        //choiceOptions = res.data.userChoices;
+    //current = res.data.past;
+    //choiceOptions = res.data.userChoices;
 
-        $('#messages-container').append(compiled);
+    $('#messages-container').append(compiled);
 
-        $('#chat-container').animate({
-            scrollTop: $('#messages-container').innerHeight()
-        }, 500);
+    $('#chat-container').animate({
+        scrollTop: $('#messages-container').innerHeight()
+    }, 500);
 
-        var chatID = '#' + res.data.itemName + incr;
-        console.log(chatID);
-        incr = incr + 1;
+    var chatID = '#' + res.data.itemName + incr;
+    console.log(chatID);
+    incr = incr + 1;
 
-        setTimeout(function() {
-            $(chatID).css("opacity", "1");
-        }, 500);
-        attachEvents();
+    setTimeout(function() {
+        $(chatID).css("opacity", "1");
+    }, 500);
+    attachEvents();
     //}, 5000);
 });
 
