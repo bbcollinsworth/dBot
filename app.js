@@ -567,49 +567,6 @@ io.on('connection', function(socket) {
 
         var prevData = [];
 
-        //resRecord requests from Parse could potentially be done through 
-
-        // resRecords.forEach(function(resObj) {
-        //     console.log("This Msg ID is: " + resObj.msgObjId);
-
-        //     parse.find('responses', {
-        //         objectId: resObj.msgObjId
-        //     }, function(err, res) {
-
-        //         if (res !== undefined) {
-        //             prevData.push(res);
-
-        //             console.log("Response to update for " + resObj.msgObjId + " is: ");
-        //             console.log(res);
-
-        //             res.end();
-        //             //callback();
-        //             //return;
-
-        //         } else if (err) {
-        //             console.log("Parse Find Error in ResRecords for " + resObj.msgObjId + ": " + res);
-        //             return;
-        //         }
-        //     });
-        // }, function(err) {
-        //     // if any of the file processing produced an error, err would equal that error 
-        //     if (err) {
-        //         // One of the iterations produced an error. 
-        //         // All processing will now stop. 
-        //         console.log(err);
-        //     } else {
-        //         console.log('All records to update have bene pulled successfully');
-        //         console.log(prevData);
-
-
-        //     }
-
-        //     updateResArrays(prevData, resRecords);
-
-        //     cb(user);
-
-        // });
-
         async.each(resRecords, function(resObj, callback) {
             console.log("This Msg ID is: " + resObj.msgObjId);
 
@@ -632,18 +589,17 @@ io.on('connection', function(socket) {
         }, function(err) {
             // if any of the file processing produced an error, err would equal that error 
             if (err) {
-                // One of the iterations produced an error. 
-                // All processing will now stop. 
+                // One of the iterations produced an error. All processing will now stop. 
                 console.log(err);
             } else {
                 console.log('All records to update have bene pulled successfully');
                 console.log(prevData);
-
-
             }
 
+            //this updates the Parse aggregate userinput arrays
             updateResArrays(prevData, resRecords);
 
+            //this deletes the disconnected user from the users array
             cb(user);
 
         });
@@ -653,12 +609,18 @@ io.on('connection', function(socket) {
     var spliceUser = function(userObj) {
         var indexToRemove = users.indexOf(userObj);
 
+        var socketIndexToRemove = userIDs.indexOf(userObj.socketID);
+
         if (indexToRemove > -1) {
             users.splice(indexToRemove, 1);
             console.log("User removed. " + users.length + " users remain.");
-            gameStarted = false;
         }
-    }
+
+        if (socketIndexToRemove > -1) {
+            userIDs.splice(indexToRemove, 1);
+            console.log("User socketID removed. " + userIDs.length + " users remain.");
+        }
+    };
 
     //****LISTENS FOR USER DISCONNECT****
     socket.on('disconnect', function() {
