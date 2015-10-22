@@ -99,7 +99,7 @@ parse.find('responses', query, function(err, res) {
 
         for (var i = 0; i < messageArray.length; i++) {
             console.log("Message ObjectID is:" + messageArray[i].objectId);
-            console.log("True index is: " + i);
+            //console.log("True index is: " + i);
             //console.log("Message index is:" + messageArray[i].messageIndex);
             //console.log("True index is: " + i);
             // messageArray[i].messageIndex = i;
@@ -197,7 +197,7 @@ io.on('connection', function(socket) {
 
         users[newUserIndex].gameStarted = true;
 
-    }, 2000);
+    }, 1000);
 
     //WHAT TO DO WHEN USER SENDS A CHOICE
     socket.on('userResponse', function(res) {
@@ -216,67 +216,6 @@ io.on('connection', function(socket) {
         //console.log(sentimentTest.score);
     });
 
-
-    var logResponse = function(msgObjID, userRes, userResParsed, callback, userObj) {
-
-        var query = {
-            objectId: msgObjID //,
-            //keys: 'userResponseRaw,userResponseParsed'
-        };
-        console.log("Query: ");
-        console.log(query);
-        parse.find('responses', {
-            objectId: msgObjID
-        }, function(err, res) {
-
-            //if (err) {
-            //   console.log('Parse.find not working.');
-            //}
-            var uResRawArr = [];
-            var uResParsedArr = [];
-
-            console.log("Response to update with UResponse is:");
-            console.log(res);
-
-            if (res.results.userResponseRaw !== undefined) {
-                uResRawArr = res.results.userResponseRaw;
-            }
-            if (res.results.userResponseParsed !== undefined) {
-                uResRasedArr = res.results.userResponseParsed;
-            }
-            //var uResParsedArr = res.results.userResponseParsed;
-            console.log("Res Array Raw is: ");
-            console.log(uResRawArr);
-
-            uResRawArr.push(userRes);
-            userResParsed.forEach(function(r) {
-                uResParsedArr.push(r);
-            });
-
-            console.log("Updated Res Arrays are: ");
-            console.log(uResRawArr);
-            //console.log(uResParsedArr);
-
-            parse.update('responses', msgObjID, {
-                // time: req.body[time],
-                //botMessageIndex: botMsgI,
-                userResponseRaw: uResRawArr, //,
-                userResponseParsed: uResParsedArr
-            }, function(err, data) {
-                if (err) {
-                    console.log("Error: " + err);
-                } else {
-                    console.log('Parse: updated uRes Data');
-
-                    //callback(userObj, userResParsed);
-                    //res.json({
-                    //status: 'OK'
-                    //});
-                }
-            });
-        });
-
-    }
 
     //parse choice so that it can be compared against choiceName trigger words in executeChoice function
     function parseResponse(_userResponse, _userID, _userIndex) {
@@ -312,29 +251,7 @@ io.on('connection', function(socket) {
         console.log("Response Stored: ");
         console.log(thisUser.userResponses[thisUser.userResponses.length - 1]);
 
-        // console.log("Response to Log: ");
-        // console.log(resToLog);
-
-        // logResponse(resToLog.objId, resToLog.uRRaw, resToLog.uRParsed, respondToUser, thisUser);
-
-        // console.log("This User is: " + thisUser.socketID);
-        // console.log("Current message for this User: " + thisUser.currentMessage.messageText);
-
-        // thisUser.nextMessage = pickNextMessage(thisUser.currentMessage, parsedResponse, thisUser.recentMessages);
-        // console.log("Next message for this User: " + thisUser.nextMessage.messageText);
-        // console.log("Index of next message: " + thisUser.nextMessage.messageIndex);
-        // //console.log("TRUE index of next message: " + messageArray.indexOf(thisUser.nextMessage));
-
-        // updateRecentMessages(thisUser, thisUser.nextMessage);
-
-        // thisUser.currentMessage = thisUser.nextMessage;
-
-        // io.to(thisUser.socketID).emit('botMessage', {
-        //     data: {
-        //         itemName: thisUser.currentMessage.objectId, //nextChoiceName,//nextMessage[index].messageText;
-        //         msg: thisUser.currentMessage.messageText
-        //     }
-        // });
+        //this function includes process to pick the next message and sends it
         respondToUser(thisUser, parsedResponse);
     }
 
@@ -515,8 +432,7 @@ io.on('connection', function(socket) {
             return matchedMessage;
 
         }
-        //console.log("Next Matched Message: " + matchedMessage.messageText);
-        //return matchedMessage;
+
     }
 
     function spliceRecentlyUsed(arrayOfIndices, _recentArray) {
@@ -568,13 +484,7 @@ io.on('connection', function(socket) {
 
             for (var i = 0; i < messageArray.length; i++) {
                 if (messageArray[i].canBeNewTopic == true) {
-
-                    //var recentlyUsed = checkIndexAgaintRecent(i, thisUser.recentMessages);
-                    //if (!recentlyUsed) {
                     fullDBIndex.push(i);
-                    //}
-                    //console.log("Adding to full DB");
-                    // console.log("messageIndex pushed: " + messageIndex);
                 }
             }
             console.log("FullDBLength: " + fullDBIndex.length);
@@ -598,10 +508,16 @@ io.on('connection', function(socket) {
         itemsToUpdate.forEach(function(i) {
 
             var itemID = i.objectId;
-            var uResRawAr = i.userResponseRaw;
-            var uResParsedAr = i.userResponseParsed;
+            var uResRawAr = [];
+            if (i.userResponseRaw !== undefined) {
+                uResRawAr = i.userResponseRaw;
+            }
+            var uResParsedAr = [];
+            if(i.userResponseParsed !== undefined) {
+                uResParsedAr = i.userResponseParsed;
+            };
 
-            console.log("Old Res Array Raw is: ");
+            console.log("Old Res Array Raw for BotMsg " + i.messageIndex + " is:");
             console.log(uResRawAr);
 
             var newResponses = {};
@@ -617,15 +533,6 @@ io.on('connection', function(socket) {
 
             if (newDataFound) {
 
-                //if (res.results.userResponseRaw !== undefined) {
-                // uResRawArr = res.results.userResponseRaw;
-                //}
-                //if (res.results.userResponseParsed !== undefined) {
-                // uResRasedArr = res.results.userResponseParsed;
-                //}
-                //var uResParsedArr = res.results.userResponseParsed;
-                
-
                 uResRawAr.push(newResponses.uRRaw);
                 newResponses.uRParsed.forEach(function(r) {
                     uResParsedAr.push(r);
@@ -635,7 +542,7 @@ io.on('connection', function(socket) {
                 console.log(uResRawAr);
                 console.log(uResParsedAr);
 
-                parse.update('responses', newResData.msgObjID, {
+                parse.update('responses', itemID, {
                     userResponseRaw: uResRawAr,
                     userResponseParsed: uResParsedAr
                 }, function(err, data) {
@@ -643,12 +550,9 @@ io.on('connection', function(socket) {
                         console.log("Error: " + err);
                         return;
                     } else {
-                        console.log('Parse: updated uRes Data');
+                        console.log('Parse: updated uRes Data for BotMsg ' + i.messageIndex);
                         return;
 
-                        //res.json({
-                        //status: 'OK'
-                        //});
                     }
                 });
             }
@@ -662,23 +566,20 @@ io.on('connection', function(socket) {
         var resRecords = user.userResponses;
 
         var prevData = [];
-        // var query = {
-        //     objectId: msgObjID //,
-        //     //keys: 'userResponseRaw,userResponseParsed'
-        // };
-        // console.log("Query: ");
-        // console.log(query);
 
-        //resRecords.forEach(function(resObj) {
+        // resRecords.forEach(function(resObj){
+
+        // });
+
         async.each(resRecords, function(resObj, callback) {
             console.log("This Msg ID is: " + resObj.msgObjId);
 
             parse.find('responses', {
                 objectId: resObj.msgObjId
             }, function(err, res) {
-                //else {
+ 
                 if (res !== undefined) {
-                    prevData.push(res.results);
+                    prevData.push(res);
 
                     console.log("Response to update for " + resObj.msgObjId + " is: ");
                     console.log(res);
@@ -686,14 +587,8 @@ io.on('connection', function(socket) {
                     callback();
 
                 } else if (err) {
-                    //console.log("Parse Find Error in ResRecords, but: ");
-                    callback("Parse Find Error in ResRecords for " + resObj.msgObjId + ": " + res);
-                    //console.log(res.results);
-                    //return;
+                    callback("Parse Find Error in ResRecords for " + resObj.msgObjId + ": " + res);                 
                 }
-
-                //return;
-                //}
             });
         }, function(err) {
             // if any of the file processing produced an error, err would equal that error 
@@ -702,38 +597,29 @@ io.on('connection', function(socket) {
                 // All processing will now stop. 
                 console.log(err);
             } else {
-                console.log('All files have been processed successfully');
+                console.log('All records to update have bene pulled successfully');
+                console.log(prevData);
+
+                
             }
 
-            //};
+            updateResArrays(prevData, resRecords);
 
-            // parse.find('responses', {
-            //     objectId: msgObjID
-            // }, function(err, res) {
-
-            //if (err) {
-            //   console.log('Parse.find not working.');
-            //}
+            cb(user);
 
         });
 
-        updateResArrays(prevData, resRecords);
-
-        cb(user);
     };
 
     var spliceUser = function(userObj) {
         var indexToRemove = users.indexOf(userObj);
+
         if (indexToRemove > -1) {
-            //indexToRemove will return index number of contect provided
-            //or -1 if not found
-            //second arg is for how many indexes to remove
             users.splice(indexToRemove, 1);
             console.log("User removed. " + users.length + " users remain.");
             gameStarted = false;
         }
     }
-
 
     //****LISTENS FOR USER DISCONNECT****
     socket.on('disconnect', function() {
@@ -754,9 +640,4 @@ io.on('connection', function(socket) {
 
     });
 
-    //send back id to client
-    socket.emit('greetings', {
-        message: "Hi",
-        data: socket.id
-    });
 });
