@@ -4,6 +4,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
 var fs = require('fs');
+var async = require('async');
 var Parse = require('node-parse-api').Parse;
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
@@ -82,34 +83,36 @@ var query = {
 parse.find('responses', query, function(err, res) {
     if (err) {
         console.log('this ain\'t workin');
-    }
-    var resResults = res.results;
-    console.log('Number of responses retrieved is ' + resResults.length);
+    } else {
+        var resResults = res.results;
+        console.log('Number of responses retrieved is ' + resResults.length);
 
 
-    for (var j = 0; j < resResults.length; j++) {
-        for (var i = 0; i < resResults.length; i++) {
-            if (resResults[i].messageIndex == j) {
-                messageArray.push(resResults[i]);
+        for (var j = 0; j < resResults.length; j++) {
+            for (var i = 0; i < resResults.length; i++) {
+                if (resResults[i].messageIndex == j) {
+                    messageArray.push(resResults[i]);
 
+                }
             }
         }
-    }
 
-    for (var i = 0; i < messageArray.length; i++) {
-        console.log("Message ObjectID is:" + messageArray[i].objectId);
-        console.log("True index is: " + i);
-        //console.log("Message index is:" + messageArray[i].messageIndex);
-        //console.log("True index is: " + i);
-        // messageArray[i].messageIndex = i;
-        // console.log("New message index is:" + messageArray[i].messageIndex);
-        // console.log("New true index is: " + i);
-    }
+        for (var i = 0; i < messageArray.length; i++) {
+            console.log("Message ObjectID is:" + messageArray[i].objectId);
+            console.log("True index is: " + i);
+            //console.log("Message index is:" + messageArray[i].messageIndex);
+            //console.log("True index is: " + i);
+            // messageArray[i].messageIndex = i;
+            // console.log("New message index is:" + messageArray[i].messageIndex);
+            // console.log("New true index is: " + i);
+        }
 
 
-    // console.log(messageArray[i].messageText);
-    if (messageArray.length == resResults.length) {
-        console.log('Parse Successful!');
+        // console.log(messageArray[i].messageText);
+        if (messageArray.length == resResults.length) {
+            console.log('Parse Successful!');
+        }
+        return;
     }
 
 });
@@ -176,15 +179,10 @@ io.on('connection', function(socket) {
             "nextMessage": {},
             "gameStarted": false,
             "size": '',
-            "recentMessages": []
+            "recentMessages": [],
+            "userResponses": []
         });
 
-
-        // for (var i in messageArray) {
-        //     if (messageArray[i].uniqueID == 0) {
-        //         startMessage = messageArray[i];
-        //     }
-        // }
 
         var newUserIndex = users.length - 1;
         io.to(users[newUserIndex].socketID).emit('startMessage', {
@@ -199,7 +197,7 @@ io.on('connection', function(socket) {
 
         users[newUserIndex].gameStarted = true;
 
-    }, 100);
+    }, 2000);
 
     //WHAT TO DO WHEN USER SENDS A CHOICE
     socket.on('userResponse', function(res) {
@@ -219,61 +217,7 @@ io.on('connection', function(socket) {
     });
 
 
-    //parse choice so that it can be compared against choiceName trigger words in executeChoice function
-    function parseResponse(_userResponse, _userID, _userIndex) {
-        console.log("working");
-        var response = _userResponse.toLowerCase();
-        var parsedResponse = response.split(/[\s,.?!&:()]+/);
-
-        if (response.indexOf("?") !== -1) {
-            parsedResponse.push("?");
-        }
-        if (response.indexOf("!") !== -1) {
-            parsedResponse.push("!");
-        }
-        console.log("parsedResponse: " + parsedResponse);
-
-
-        var thisUser = {};
-        for (var u in users) {
-            if (_userID == users[u].socketID) {
-                thisUser = users[u];
-                break;
-            }
-        }
-
-        var resToLog = {
-            objId: thisUser.currentMessage.objectId,
-            uRRaw: _userResponse,
-            uRParsed: parsedResponse
-        };
-
-        console.log("Response to Log: ");
-        console.log(resToLog);
-
-        logResponse(resToLog.objId, resToLog.uRRaw, resToLog.uRParsed, respondToUser, thisUser);
-
-        // console.log("This User is: " + thisUser.socketID);
-        // console.log("Current message for this User: " + thisUser.currentMessage.messageText);
-
-        // thisUser.nextMessage = pickNextMessage(thisUser.currentMessage, parsedResponse, thisUser.recentMessages);
-        // console.log("Next message for this User: " + thisUser.nextMessage.messageText);
-        // console.log("Index of next message: " + thisUser.nextMessage.messageIndex);
-        // //console.log("TRUE index of next message: " + messageArray.indexOf(thisUser.nextMessage));
-
-        // updateRecentMessages(thisUser, thisUser.nextMessage);
-
-        // thisUser.currentMessage = thisUser.nextMessage;
-
-        // io.to(thisUser.socketID).emit('botMessage', {
-        //     data: {
-        //         itemName: thisUser.currentMessage.objectId, //nextChoiceName,//nextMessage[index].messageText;
-        //         msg: thisUser.currentMessage.messageText
-        //     }
-        // });
-    }
-
-    function logResponse(msgObjID, userRes, userResParsed, callback, userObj) {
+    var logResponse = function(msgObjID, userRes, userResParsed, callback, userObj) {
 
         var query = {
             objectId: msgObjID //,
@@ -281,7 +225,9 @@ io.on('connection', function(socket) {
         };
         console.log("Query: ");
         console.log(query);
-        parse.find('responses', {objectId: msgObjID}, function(err, res) {
+        parse.find('responses', {
+            objectId: msgObjID
+        }, function(err, res) {
 
             //if (err) {
             //   console.log('Parse.find not working.');
@@ -291,7 +237,7 @@ io.on('connection', function(socket) {
 
             console.log("Response to update with UResponse is:");
             console.log(res);
-            
+
             if (res.results.userResponseRaw !== undefined) {
                 uResRawArr = res.results.userResponseRaw;
             }
@@ -322,7 +268,7 @@ io.on('connection', function(socket) {
                 } else {
                     console.log('Parse: updated uRes Data');
 
-                    callback(userObj, userResParsed);
+                    //callback(userObj, userResParsed);
                     //res.json({
                     //status: 'OK'
                     //});
@@ -331,6 +277,68 @@ io.on('connection', function(socket) {
         });
 
     }
+
+    //parse choice so that it can be compared against choiceName trigger words in executeChoice function
+    function parseResponse(_userResponse, _userID, _userIndex) {
+        console.log("working");
+        var response = _userResponse.toLowerCase();
+        var parsedResponse = response.split(/[\s,.?!&:()]+/);
+
+        if (response.indexOf("?") !== -1) {
+            parsedResponse.push("?");
+        }
+        if (response.indexOf("!") !== -1) {
+            parsedResponse.push("!");
+        }
+        console.log("parsedResponse: " + parsedResponse);
+
+
+        var thisUser = {};
+        for (var u in users) {
+            if (_userID == users[u].socketID) {
+                thisUser = users[u];
+                break;
+            }
+        }
+
+        var resToLog = {
+            msgObjId: thisUser.currentMessage.objectId,
+            msgIndex: thisUser.currentMessage.messageIndex,
+            uRRaw: _userResponse,
+            uRParsed: parsedResponse
+        };
+
+        thisUser.userResponses.push(resToLog);
+        console.log("Response Stored: ");
+        console.log(thisUser.userResponses[thisUser.userResponses.length - 1]);
+
+        // console.log("Response to Log: ");
+        // console.log(resToLog);
+
+        // logResponse(resToLog.objId, resToLog.uRRaw, resToLog.uRParsed, respondToUser, thisUser);
+
+        // console.log("This User is: " + thisUser.socketID);
+        // console.log("Current message for this User: " + thisUser.currentMessage.messageText);
+
+        // thisUser.nextMessage = pickNextMessage(thisUser.currentMessage, parsedResponse, thisUser.recentMessages);
+        // console.log("Next message for this User: " + thisUser.nextMessage.messageText);
+        // console.log("Index of next message: " + thisUser.nextMessage.messageIndex);
+        // //console.log("TRUE index of next message: " + messageArray.indexOf(thisUser.nextMessage));
+
+        // updateRecentMessages(thisUser, thisUser.nextMessage);
+
+        // thisUser.currentMessage = thisUser.nextMessage;
+
+        // io.to(thisUser.socketID).emit('botMessage', {
+        //     data: {
+        //         itemName: thisUser.currentMessage.objectId, //nextChoiceName,//nextMessage[index].messageText;
+        //         msg: thisUser.currentMessage.messageText
+        //     }
+        // });
+        respondToUser(thisUser, parsedResponse);
+    }
+
+
 
     function respondToUser(thisUser, parsedResponse) {
         console.log("This User is: " + thisUser.socketID);
@@ -585,31 +593,165 @@ io.on('connection', function(socket) {
 
     }
 
+    var updateResArrays = function(itemsToUpdate, newResData) {
+
+        itemsToUpdate.forEach(function(i) {
+
+            var itemID = i.objectId;
+            var uResRawAr = i.userResponseRaw;
+            var uResParsedAr = i.userResponseParsed;
+
+            console.log("Old Res Array Raw is: ");
+            console.log(uResRawAr);
+
+            var newResponses = {};
+            var newDataFound = false;
+
+            for (var d in newResData) {
+                if (newResData[d].msgObjId == itemID) {
+                    newResponses = newResData[d];
+                    newDataFound = true;
+                    break;
+                }
+            }
+
+            if (newDataFound) {
+
+                //if (res.results.userResponseRaw !== undefined) {
+                // uResRawArr = res.results.userResponseRaw;
+                //}
+                //if (res.results.userResponseParsed !== undefined) {
+                // uResRasedArr = res.results.userResponseParsed;
+                //}
+                //var uResParsedArr = res.results.userResponseParsed;
+                
+
+                uResRawAr.push(newResponses.uRRaw);
+                newResponses.uRParsed.forEach(function(r) {
+                    uResParsedAr.push(r);
+                });
+
+                console.log("Updated Res Arrays are: ");
+                console.log(uResRawAr);
+                console.log(uResParsedAr);
+
+                parse.update('responses', newResData.msgObjID, {
+                    userResponseRaw: uResRawAr,
+                    userResponseParsed: uResParsedAr
+                }, function(err, data) {
+                    if (err) {
+                        console.log("Error: " + err);
+                        return;
+                    } else {
+                        console.log('Parse: updated uRes Data');
+                        return;
+
+                        //res.json({
+                        //status: 'OK'
+                        //});
+                    }
+                });
+            }
+
+        });
+    };
 
 
-    //when a client connects to server, broadcast to everyone
-    io.sockets.emit('current users', {
-        //attaching whole array (users) in currentUsers object
-        // currentUsers: players
-    });
+    var pushUserResponses = function(user, cb) {
 
-    var nodeCounter;
+        var resRecords = user.userResponses;
 
+        var prevData = [];
+        // var query = {
+        //     objectId: msgObjID //,
+        //     //keys: 'userResponseRaw,userResponseParsed'
+        // };
+        // console.log("Query: ");
+        // console.log(query);
 
-    //****LISTENS FOR USER DISCONNECT****
-    socket.on('disconnect', function() {
-        console.log('a user ' + socket.id + ' just disconnected.');
-        //use indexOf to find index of res.id
-        var indexToRemove = users.indexOf(socket.id);
+        //resRecords.forEach(function(resObj) {
+        async.each(resRecords, function(resObj, callback) {
+            console.log("This Msg ID is: " + resObj.msgObjId);
 
+            parse.find('responses', {
+                objectId: resObj.msgObjId
+            }, function(err, res) {
+                //else {
+                if (res !== undefined) {
+                    prevData.push(res.results);
+
+                    console.log("Response to update for " + resObj.msgObjId + " is: ");
+                    console.log(res);
+
+                    callback();
+
+                } else if (err) {
+                    //console.log("Parse Find Error in ResRecords, but: ");
+                    callback("Parse Find Error in ResRecords for " + resObj.msgObjId + ": " + res);
+                    //console.log(res.results);
+                    //return;
+                }
+
+                //return;
+                //}
+            });
+        }, function(err) {
+            // if any of the file processing produced an error, err would equal that error 
+            if (err) {
+                // One of the iterations produced an error. 
+                // All processing will now stop. 
+                console.log(err);
+            } else {
+                console.log('All files have been processed successfully');
+            }
+
+            //};
+
+            // parse.find('responses', {
+            //     objectId: msgObjID
+            // }, function(err, res) {
+
+            //if (err) {
+            //   console.log('Parse.find not working.');
+            //}
+
+        });
+
+        updateResArrays(prevData, resRecords);
+
+        cb(user);
+    };
+
+    var spliceUser = function(userObj) {
+        var indexToRemove = users.indexOf(userObj);
         if (indexToRemove > -1) {
             //indexToRemove will return index number of contect provided
             //or -1 if not found
             //second arg is for how many indexes to remove
             users.splice(indexToRemove, 1);
-            console.log('current users: ' + users.length);
+            console.log("User removed. " + users.length + " users remain.");
             gameStarted = false;
         }
+    }
+
+
+    //****LISTENS FOR USER DISCONNECT****
+    socket.on('disconnect', function() {
+        console.log('a user ' + socket.id + ' just disconnected.');
+
+        var goneUser = {};
+
+        for (var u in users) {
+            if (users[u].socketID == socket.id) {
+                goneUser = users[u];
+                console.log("User who left is: " + goneUser.socketID);
+                console.log("Their index is: " + users.indexOf(goneUser));
+                break;
+            }
+        }
+
+        pushUserResponses(goneUser, spliceUser);
+
     });
 
     //send back id to client
