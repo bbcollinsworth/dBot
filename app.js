@@ -513,7 +513,7 @@ io.on('connection', function(socket) {
                 uResRawAr = i.userResponseRaw;
             }
             var uResParsedAr = [];
-            if(i.userResponseParsed !== undefined) {
+            if (i.userResponseParsed !== undefined) {
                 uResParsedAr = i.userResponseParsed;
             };
 
@@ -567,7 +567,46 @@ io.on('connection', function(socket) {
 
         var prevData = [];
 
-        // resRecords.forEach(function(resObj){
+        //resRecord requests from Parse could potentially be done through 
+
+        // resRecords.forEach(function(resObj) {
+        //     console.log("This Msg ID is: " + resObj.msgObjId);
+
+        //     parse.find('responses', {
+        //         objectId: resObj.msgObjId
+        //     }, function(err, res) {
+
+        //         if (res !== undefined) {
+        //             prevData.push(res);
+
+        //             console.log("Response to update for " + resObj.msgObjId + " is: ");
+        //             console.log(res);
+
+        //             res.end();
+        //             //callback();
+        //             //return;
+
+        //         } else if (err) {
+        //             console.log("Parse Find Error in ResRecords for " + resObj.msgObjId + ": " + res);
+        //             return;
+        //         }
+        //     });
+        // }, function(err) {
+        //     // if any of the file processing produced an error, err would equal that error 
+        //     if (err) {
+        //         // One of the iterations produced an error. 
+        //         // All processing will now stop. 
+        //         console.log(err);
+        //     } else {
+        //         console.log('All records to update have bene pulled successfully');
+        //         console.log(prevData);
+
+
+        //     }
+
+        //     updateResArrays(prevData, resRecords);
+
+        //     cb(user);
 
         // });
 
@@ -577,7 +616,7 @@ io.on('connection', function(socket) {
             parse.find('responses', {
                 objectId: resObj.msgObjId
             }, function(err, res) {
- 
+
                 if (res !== undefined) {
                     prevData.push(res);
 
@@ -600,7 +639,7 @@ io.on('connection', function(socket) {
                 console.log('All records to update have bene pulled successfully');
                 console.log(prevData);
 
-                
+
             }
 
             updateResArrays(prevData, resRecords);
