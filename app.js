@@ -320,6 +320,13 @@ io.on('connection', function(socket) {
         console.log("Current message for this User: " + thisUser.currentMessage.messageText);
 
         thisUser.nextMessage = pickNextMessage(thisUser.currentMessage, parsedResponse, thisUser.recentMessages);
+
+        //***extra safeguard in case pick totally fails
+        if (thisUser.nextMessage === undefined) {
+            console.log("PickNext fn returned undefined. Replacing w Random Message");
+            thisUser.nextMessage = randomResponse(thisUser.recentMessages);
+        }
+
         console.log("Next message for this User: " + thisUser.nextMessage.messageText);
         console.log("Index of next message: " + thisUser.nextMessage.messageIndex);
         //console.log("TRUE index of next message: " + messageArray.indexOf(thisUser.nextMessage));
@@ -328,12 +335,18 @@ io.on('connection', function(socket) {
 
         thisUser.currentMessage = thisUser.nextMessage;
 
-        io.to(thisUser.socketID).emit('botMessage', {
-            data: {
-                itemName: thisUser.currentMessage.objectId, //nextChoiceName,//nextMessage[index].messageText;
-                msg: thisUser.currentMessage.messageText
-            }
-        });
+        var resDelay = Math.random()*500;
+        resDelay = Math.floor(resDelay);
+        console.log("Random delay is: " + resDelay);
+
+        setTimeout(function() {
+            io.to(thisUser.socketID).emit('botMessage', {
+                data: {
+                    itemName: thisUser.currentMessage.objectId, //nextChoiceName,//nextMessage[index].messageText;
+                    msg: thisUser.currentMessage.messageText
+                }
+            });
+        }, resDelay);
     }
 
 
@@ -434,7 +447,7 @@ io.on('connection', function(socket) {
             //console.log("Triggers at nextNodes: " + messageArray[indexToCheck].triggers);
             nextTriggersArray = messageArray[indexToCheck].triggers;
 
-            if (nextTriggersArray != undefined) {
+            if (nextTriggersArray !== undefined) {
                 for (var w in parsedRes) {
 
                     var termToCompare = parsedRes[w];
