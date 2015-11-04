@@ -66,7 +66,7 @@ var attachEvents = function() {
             heSaid: heSaid,
             iSaid: iSaid,
         });
-        alert('submitted!');
+        alert('Thanks for feeding d.Bot!');
         destroySubmissions();
     });
 
