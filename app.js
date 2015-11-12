@@ -260,7 +260,8 @@ io.on('connection', function(socket) {
     }
 
     //for users who don't respond for a while
-    var delayedResTimer;
+    var delayedRes;
+    var secondDelayedRes;
     //var waitTime = 10000;
 
     //WHAT TO DO WHEN USER SENDS A CHOICE
@@ -273,16 +274,26 @@ io.on('connection', function(socket) {
         console.log(socket.id);
 
         //THIS MAKES DBOT SEND IMPATIENT RESPONSES:
-        clearTimeout(delayedResTimer);
+        clearTimeout(delayedRes);
+        clearTimeout(secondDelayedRes);
 
         var waitTime = 1000 * (Math.random() * 20 + 10);
 
-        delayedResTimer = setTimeout(function() {
+        delayedRes = setTimeout(function() {
             console.log("I'm getting impatient after userRes " + res.userResponse);
 
             thisUser = getUser(socket.id);
             respondToUser(thisUser);
+
         }, waitTime);
+
+        if (Math.random() > 0.3) {
+            var longerWaitTime = waitTime + 1000 * (Math.random() * 30 + 10);
+            secondDelayedRes = setTimeout(function() {
+                console.log("Sending 2nd impatient res after " + res.userResponse);
+                respondToUser(thisUser);
+            }, longerWaitTime);
+        }
 
         parseResponse(res.userResponse, socket.id, res.user);
         //var sentimentTest = sentiment(res.userResponse, {
@@ -448,7 +459,7 @@ io.on('connection', function(socket) {
 
         thisUser.currentMessage = thisUser.nextMessage;
 
-        var resDelay = Math.random() * 500;
+        var resDelay = Math.random() * 800;
         resDelay = Math.floor(resDelay);
         console.log("Random delay is: " + resDelay);
 
