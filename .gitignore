@@ -1,4 +1,10 @@
-# Elastic Beanstalk Files.elasticbeanstalk/*!.elasticbeanstalk/*.cfg.yml!.elasticbeanstalk/*.global.yml.env
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*
+.cfg.yml!
+.elasticbeanstalk/*
+.global.yml
+.env
 
 
 # Compiled source #
