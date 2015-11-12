@@ -174,7 +174,7 @@ io.on('connection', function(socket) {
     var query = {
         limit: 1000,
         skip: 0,
-        keys: 'uniqueID,messageIndex,triggers,messageText,nextNodes,canBeNewTopic,category'
+        keys: 'messageIndex,triggers,messageText,nextNodes,canBeNewTopic,category'
     };
 
     parse.find('responses', query, function(err, res) {
@@ -275,7 +275,7 @@ io.on('connection', function(socket) {
         //THIS MAKES DBOT SEND IMPATIENT RESPONSES:
         clearTimeout(delayedResTimer);
 
-        var waitTime = 1000*(Math.random()*20+10);
+        var waitTime = 1000 * (Math.random() * 20 + 10);
 
         delayedResTimer = setTimeout(function() {
             console.log("I'm getting impatient after userRes " + res.userResponse);
@@ -302,6 +302,47 @@ io.on('connection', function(socket) {
         return thisUser;
     }
 
+    function shortCheck(rawResponse) {
+        console.log("Checking for short response");
+        if (rawResponse.length <= 2) {
+            console.log("Short detected!");
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function longCheck(parsedResponse) {
+        console.log("Checking for long response");
+        for (var r in parsedResponse) {
+            var word = parsedResponse[r];
+
+            if (word.length >= 10) {
+                console.log("Long detected!");
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    function repeatCheck(rawResponse) {
+        console.log("Checking for repeated response");
+        var u = getUser(socket.id);
+        var lastUResIndex = u.userResponses.length - 1;
+        if (lastUResIndex < 0) {
+            return;
+        } else {
+            var lastURes = u.userResponses[lastUResIndex].uRRaw;
+            if (rawResponse == lastURes) {
+                console.log("Repeat detected!");
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
 
     //parse choice so that it can be compared against choiceName trigger words in executeChoice function
     function parseResponse(_userResponse, _userID, _userIndex) {
@@ -317,14 +358,25 @@ io.on('connection', function(socket) {
         }
         console.log("parsedResponse: " + parsedResponse);
 
+        var shortRes = shortCheck(_userResponse);
+        var longRes = longCheck(parsedResponse);
+        var repeatRes = repeatCheck(_userResponse);
+
+        if (shortRes) {
+            parsedResponse.push("shortResponse");
+        }
+
+        if (longRes) {
+            parsedResponse.push("longResponse");
+        }
+
+        if (repeatRes) {
+            parsedResponse.push("repeatResponse");
+        }
+
+        console.log("Updated parsedResponse: " + parsedResponse);
+
         var thisUser = getUser(_userID);
-        // var thisUser = {};
-        // for (var u in users) {
-        //     if (_userID == users[u].socketID) {
-        //         thisUser = users[u];
-        //         break;
-        //     }
-        // }
 
         var resToLog = {
             msgObjId: thisUser.currentMessage.objectId,
@@ -715,7 +767,7 @@ io.on('connection', function(socket) {
 
             parse.find('responses', {
                 objectId: resObj.msgObjId,
-                keys: 'uniqueID,messageIndex,messageText,userResponseRaw,userResponseParsed'
+                keys: 'messageIndex,messageText,userResponseRaw,userResponseParsed'
             }, function(err, res) {
 
                 if (res !== undefined) {
