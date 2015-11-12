@@ -3,6 +3,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
+var dotenv = require('dotenv').load();
 var fs = require('fs');
 var async = require('async');
 var Parse = require('node-parse-api').Parse;
