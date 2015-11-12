@@ -17,8 +17,8 @@ var port = 9000; //process.env.PORT;//9000;app.set('port', process.env.PORT || 3
 var responsesBeforeRepeatAllowed = 25;
 
 var options = {
-    app_id: '9X7zv5iCaJ4LlAEN9wD1A3886geFH942KB3zo4um',
-    api_key: 'rDEd5ONpK0b00uh3zaUMLFdNBCJphoaPMLq4th1y' //Rest api key (not master key)
+    app_id: process.env.PARSE_APP_ID,
+    api_key: process.env.PARSE_API_KEY //Rest api key (not master key)
 };
 
 var parse = new Parse(options);
