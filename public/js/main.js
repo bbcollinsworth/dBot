@@ -61,11 +61,15 @@ var attachEvents = function() {
         var time = Date.now();
         console.log(heSaid + ' : ' + iSaid + ' : ');
 
-        $.post('/', {
-            time: time,
-            heSaid: heSaid,
-            iSaid: iSaid,
-        });
+        //screening for blank bot submissions
+        //so we don't flood our database
+        if (heSaid !== "") {
+            $.post('/', {
+                time: time,
+                heSaid: heSaid,
+                iSaid: iSaid,
+            });
+        }
         alert('Thanks for feeding d.Bot!');
         destroySubmissions();
     });

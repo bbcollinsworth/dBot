@@ -165,6 +165,7 @@ io.on('connection', function(socket) {
 
     userIDs.push(socket.id);
 
+    var userIndex;
 
     var messageArray = [];
     var choicesFunc = [];
@@ -257,6 +258,10 @@ io.on('connection', function(socket) {
         }, 500);
     }
 
+    //for users who don't respond for a while
+    var delayedResTimer;
+    //var waitTime = 10000;
+
     //WHAT TO DO WHEN USER SENDS A CHOICE
     socket.on('userResponse', function(res) {
 
@@ -266,6 +271,17 @@ io.on('connection', function(socket) {
         console.log("Their socketID is:");
         console.log(socket.id);
 
+        //THIS MAKES DBOT SEND IMPATIENT RESPONSES:
+        clearTimeout(delayedResTimer);
+
+        var waitTime = 1000*(Math.random()*20+10);
+
+        delayedResTimer = setTimeout(function() {
+            console.log("I'm getting impatient after userRes " + res.userResponse);
+
+            thisUser = getUser(socket.id);
+            respondToUser(thisUser);
+        }, waitTime);
 
         parseResponse(res.userResponse, socket.id, res.user);
         //var sentimentTest = sentiment(res.userResponse, {
@@ -273,6 +289,17 @@ io.on('connection', function(socket) {
         //});
         //console.log(sentimentTest.score);
     });
+
+    function getUser(sID) {
+        var thisUser = {};
+        for (var u in users) {
+            if (socket.id == users[u].socketID) {
+                thisUser = users[u];
+                break;
+            }
+        }
+        return thisUser;
+    }
 
 
     //parse choice so that it can be compared against choiceName trigger words in executeChoice function
@@ -289,14 +316,14 @@ io.on('connection', function(socket) {
         }
         console.log("parsedResponse: " + parsedResponse);
 
-
-        var thisUser = {};
-        for (var u in users) {
-            if (_userID == users[u].socketID) {
-                thisUser = users[u];
-                break;
-            }
-        }
+        var thisUser = getUser(_userID);
+        // var thisUser = {};
+        // for (var u in users) {
+        //     if (_userID == users[u].socketID) {
+        //         thisUser = users[u];
+        //         break;
+        //     }
+        // }
 
         var resToLog = {
             msgObjId: thisUser.currentMessage.objectId,
@@ -313,14 +340,47 @@ io.on('connection', function(socket) {
         respondToUser(thisUser, parsedResponse);
     }
 
+    function impatientResponse(user) {
+        var impResIndices = [];
+        for (var i in messageArray) {
+            if (messageArray[i].category == "impatient") {
+                impResIndices.push(messageArray[i].messageIndex);
+            }
+        }
 
+        spliceRecentlyUsed(impResIndices, user.recentMessages);
+
+        if (impResIndices.length < 1) {
+            return null;
+        } else {
+            randIndex = getRandomIndex(impResIndices.length);
+            var pickedIndex = impResIndices[randIndex];
+            var impRes = messageArray[pickedIndex];
+            console.log("Sending impatient response: ");
+            console.log(impRes.messageText);
+            return impRes;
+        }
+
+    }
 
     function respondToUser(thisUser, parsedResponse) {
         console.log("This User is: " + thisUser.socketID);
         console.log("Current message for this User: " + thisUser.currentMessage.messageText);
 
-        thisUser.nextMessage = pickNextMessage(thisUser.currentMessage, parsedResponse, thisUser.recentMessages);
+        if (parsedResponse === undefined) {
+            var tempRes = impatientResponse(thisUser);
 
+            if (tempRes === null) {
+                console.log("All impatient msgs used. Returning");
+                return;
+            } else {
+                thisUser.nextMessage = tempRes;
+            }
+
+        } else {
+
+            thisUser.nextMessage = pickNextMessage(thisUser.currentMessage, parsedResponse, thisUser.recentMessages);
+        }
         //***extra safeguard in case pick totally fails
         if (thisUser.nextMessage === undefined) {
             console.log("PickNext fn returned undefined. Replacing w Random Message");
@@ -335,7 +395,7 @@ io.on('connection', function(socket) {
 
         thisUser.currentMessage = thisUser.nextMessage;
 
-        var resDelay = Math.random()*500;
+        var resDelay = Math.random() * 500;
         resDelay = Math.floor(resDelay);
         console.log("Random delay is: " + resDelay);
 
