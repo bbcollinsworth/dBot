@@ -278,11 +278,11 @@ io.on('connection', function(socket) {
         clearTimeout(secondDelayedRes);
 
         var waitTime = 1000 * (Math.random() * 20 + 10);
+        var thisUser = getUser(socket.id);
 
         delayedRes = setTimeout(function() {
             console.log("I'm getting impatient after userRes " + res.userResponse);
 
-            thisUser = getUser(socket.id);
             respondToUser(thisUser);
 
         }, waitTime);
@@ -325,14 +325,18 @@ io.on('connection', function(socket) {
 
     function longCheck(parsedResponse) {
         console.log("Checking for long response");
-        for (var r in parsedResponse) {
-            var word = parsedResponse[r];
+        if (parsedResponse.length > 14) {
+            return true;
+        } else {
+            for (var r in parsedResponse) {
+                var word = parsedResponse[r];
 
-            if (word.length >= 10) {
-                console.log("Long detected!");
-                return true;
-            } else {
-                return false;
+                if (word.length > 8) {
+                    console.log("Long detected!");
+                    return true;
+                } else {
+                    return false;
+                }
             }
         }
     }
@@ -503,20 +507,26 @@ io.on('connection', function(socket) {
     function pickNextMessage(_currentMessage, _parsedResponse, _recentMessages) {
         var pickedMessage = {};
         console.log("Pick Next Message Called");
+
         //console.log("Next Nodes of this message: " + _currentMessage.nextNodes.length);
         if (_currentMessage.nextNodes !== undefined) {
+            var nextNodesCopy = _currentMessage.nextNodes.slice(0); //making sure we don't modify original nextnodes!
+
             console.log("I know this message has nextNodes");
-            if (_currentMessage.nextNodes.length == 1) { //if there's only one path to take...
-                nextMessageIndex = _currentMessage.nextNodes[0]; //pulls the only number in nextNodes array and sets it as index
+            console.log("NextNodesCopy is: " + nextNodesCopy);
+
+            if (nextNodesCopy.length == 1) { //if there's only one path to take...
+                nextMessageIndex = nextNodesCopy[0];
+                //nextMessageIndex = nextNodesCopy[0]; //pulls the only number in nextNodes array and sets it as index
                 pickedMessage = messageArray[nextMessageIndex]; //pulls the next message object based on index from nextNodes
                 console.log("This message has one possible path");
                 //console.log("Next message is: " + pickedMessage.messageText);
                 return pickedMessage;
 
                 //****UPDATED THIS TO CATCH NEXT-NODES ARRAYS THAT ARE ZEROED OUT
-            } else if (_currentMessage.nextNodes.length > 1) {
+            } else if (nextNodesCopy.length > 1) {
                 console.log("This message has multiple possible paths");
-                pickedMessage = matchTriggers(_parsedResponse, _recentMessages, _currentMessage.nextNodes); //call matchtriggers, but with limits to specific options
+                pickedMessage = matchTriggers(_parsedResponse, _recentMessages, nextNodesCopy); //call matchtriggers, but with limits to specific options
                 //console.log("Next message is: " + pickedMessage.messageText);
                 return pickedMessage;
             } else {
@@ -607,10 +617,24 @@ io.on('connection', function(socket) {
         if (matchCounts.length < 1) {
             if (limitRandomToNextNodes) {
                 console.log("NextNodes limited but no triggers matched");
-                //var randomIndex = getRandomIndex(nextNodesArray.length);
-                var randomIndex = Math.floor(Math.random() * nextNodesArray.length);
-                var randomNextNode = nextNodesArray[randomIndex];
-                matchedMessage = messageArray[randomNextNode];
+
+                if (nextNodesArray.length > 1) {
+                    console.log("Checking for special nextnodes...");
+                    nextNodesArray.forEach(function(nodeIndex) {
+
+                        //NOT WORKING YET
+                        if (!messageArray[nodeIndex].canBeRandomNextNode) {
+                            var iToSplice = nextNodesArray.indexOf(nodeIndex);
+                            console.log("Splicing special nextNode at index: " + iToSplice);
+                            nextNodesArray.splice(iToSplice, 1);
+                        }
+                    });
+                }
+
+                var randomIndex = getRandomIndex(nextNodesArray.length);
+                //var randomIndex = Math.floor(Math.random() * nextNodesArray.length);
+                var randomNextNodeIndex = nextNodesArray[randomIndex];
+                matchedMessage = messageArray[randomNextNodeIndex];
                 return matchedMessage;
             } else {
                 //randomIndex
@@ -622,7 +646,18 @@ io.on('connection', function(socket) {
             console.log("Only one matched message");
             var indexOfNextMessage = matchCounts[0].indexOfMessage;
             matchedMessage = messageArray[indexOfNextMessage];
-            return matchedMessage;
+            if (!matchedMessage.canBeRandomNextNode) {
+                if (Math.random < 0.5) {
+                    console.log("Matched message special - sending random response instead!");
+                    matchedMessage = randomResponse(recentArray); // THIS NEEDS TO BE SET
+                    return matchedMessage;
+                } else {
+                    console.log("Matched message special - sending it!");
+                    return matchedMessage;
+                }
+            } else {
+                return matchedMessage;
+            }
         } else {
             console.log("Picking a matched message from several matched triggers");
             for (var m = 0; m < matchCounts.length; m++) {
@@ -631,7 +666,8 @@ io.on('connection', function(socket) {
                 }
             }
 
-            var randomIndex = Math.floor(Math.random() * matchCounts.length);
+            var randomIndex = getRandomIndex(matchCounts.length);
+            //var randomIndex = Math.floor(Math.random() * matchCounts.length);
             var indexOfNextMessage = matchCounts[randomIndex].indexOfMessage;
             matchedMessage = messageArray[indexOfNextMessage];
             return matchedMessage;
