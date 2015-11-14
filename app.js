@@ -174,7 +174,7 @@ io.on('connection', function(socket) {
     var query = {
         limit: 1000,
         skip: 0,
-        keys: 'messageIndex,triggers,messageText,nextNodes,canBeNewTopic,category'
+        keys: 'messageIndex,triggers,messageText,nextNodes,canBeNewTopic,canBeRandomNextNode,category'
     };
 
     parse.find('responses', query, function(err, res) {
@@ -197,7 +197,7 @@ io.on('connection', function(socket) {
             }
 
             for (var i = 0; i < messageArray.length; i++) {
-                console.log("Message ObjectID is:" + messageArray[i].objectId);
+                // console.log("Message ObjectID is:" + messageArray[i].objectId);
                 //console.log("True index is: " + i);
                 //console.log("Message index is:" + messageArray[i].messageIndex);
                 //console.log("True index is: " + i);
@@ -209,7 +209,7 @@ io.on('connection', function(socket) {
 
             // console.log(messageArray[i].messageText);
             if (messageArray.length == resResults.length) {
-                console.log('Parse Successful!');
+                console.log('Parse pull Successful!');
             }
 
             sendStartMsg();
@@ -562,7 +562,7 @@ io.on('connection', function(socket) {
             limitRandomToNextNodes = false;
         }
 
-        console.log("NextNodesArray Length before recentCheck is: " + nextNodesArray.length);
+        //console.log("NextNodesArray Length before recentCheck is: " + nextNodesArray.length);
 
         spliceRecentlyUsed(nextNodesArray, recentArray);
 
@@ -618,23 +618,31 @@ io.on('connection', function(socket) {
             if (limitRandomToNextNodes) {
                 console.log("NextNodes limited but no triggers matched");
 
-                if (nextNodesArray.length > 1) {
-                    console.log("Checking for special nextnodes...");
-                    nextNodesArray.forEach(function(nodeIndex) {
+                // if (nextNodesArray.length > 1) {
+                //     console.log("Checking for special nextnodes...");
+                //     nextNodesArray.forEach(function(nodeIndex) {
+                //         //for (var n in nextNodesArray){
+                //         //NOT WORKING YET
+                //         //var checkIndex = nextNodesArray[n];
+                //         console.log("canBeRandNext is: " + messageArray[nodeIndex].canBeRandomNextNode);
+                //         if (!messageArray[nodeIndex].canBeRandomNextNode) {
+                //             var iToSplice = nextNodesArray.indexOf(nodeIndex);
+                //             console.log("Splicing special nextNode at index: " + iToSplice);
+                //             nextNodesArray.splice(iToSplice, 1);
+                //         }
+                //     });
+                // }
 
-                        //NOT WORKING YET
-                        if (!messageArray[nodeIndex].canBeRandomNextNode) {
-                            var iToSplice = nextNodesArray.indexOf(nodeIndex);
-                            console.log("Splicing special nextNode at index: " + iToSplice);
-                            nextNodesArray.splice(iToSplice, 1);
-                        }
-                    });
-                }
+                // console.log("NextNodesArray Length after specialCheck is: " + nextNodesArray.length);
 
-                var randomIndex = getRandomIndex(nextNodesArray.length);
+                spliceNonRandomNextNodes(nextNodesArray);
+
                 //var randomIndex = Math.floor(Math.random() * nextNodesArray.length);
-                var randomNextNodeIndex = nextNodesArray[randomIndex];
-                matchedMessage = messageArray[randomNextNodeIndex];
+
+                // var randomIndex = getRandomIndex(nextNodesArray.length);
+                // var randomNextNodeIndex = nextNodesArray[randomIndex];
+                // matchedMessage = messageArray[randomNextNodeIndex];
+                matchedMessage = randomResponse(recentArray, nextNodesArray);
                 return matchedMessage;
             } else {
                 //randomIndex
@@ -649,7 +657,7 @@ io.on('connection', function(socket) {
             if (!matchedMessage.canBeRandomNextNode) {
                 if (Math.random < 0.5) {
                     console.log("Matched message special - sending random response instead!");
-                    matchedMessage = randomResponse(recentArray); // THIS NEEDS TO BE SET
+                    matchedMessage = randomResponse(recentArray, nextNodesArray); // THIS NEEDS TO BE SET
                     return matchedMessage;
                 } else {
                     console.log("Matched message special - sending it!");
@@ -670,10 +678,47 @@ io.on('connection', function(socket) {
             //var randomIndex = Math.floor(Math.random() * matchCounts.length);
             var indexOfNextMessage = matchCounts[randomIndex].indexOfMessage;
             matchedMessage = messageArray[indexOfNextMessage];
+
+            //check for special message
+            if (limitRandomToNextNodes) {
+                if (!matchedMessage.canBeRandomNextNode) {
+                    console.log("I know this message can't be RandomNextNode");
+                    if (Math.random < 0.5) {
+                        console.log("Matched message special - sending random response instead!");
+                        matchedMessage = randomResponse(recentArray, nextNodesArray); // THIS NEEDS TO BE SET
+                       // return matchedMessage;
+                    } else {
+                        console.log("Matched message special - sending it!");
+                        //return matchedMessage;
+                    }
+                }// else {
+
+                //}
+            }
             return matchedMessage;
 
         }
 
+    }
+
+    function spliceNonRandomNextNodes(nodesArray) {
+
+        if (nodesArray.length > 1) {
+            console.log("Checking for special nextnodes...");
+            nodesArray.forEach(function(nodeIndex) {
+                //for (var n in nodesArray){
+                //NOT WORKING YET
+                //var checkIndex = nodesArray[n];
+                console.log("canBeRandNext is: " + messageArray[nodeIndex].canBeRandomNextNode);
+                if (!messageArray[nodeIndex].canBeRandomNextNode) {
+                    var iToSplice = nodesArray.indexOf(nodeIndex);
+                    console.log("Splicing special nextNode at index: " + iToSplice);
+                    nodesArray.splice(iToSplice, 1);
+                }
+            });
+        }
+
+        console.log("nodesArray Length after specialCheck is: " + nodesArray.length);
     }
 
     function spliceRecentlyUsed(arrayOfIndices, _recentArray) {
@@ -700,13 +745,24 @@ io.on('connection', function(socket) {
         return randI;
     }
 
-    function randomResponse(recent) {
+    function randomResponse(recent, indicesArray) {
 
-        var allAvailIndices = getFullDBIndex(true);
+        var allAvailIndices = [];
+        if (indicesArray !== undefined) {
+            console.log("Sending a random response limited to nextNodes");
+            allAvailIndices = indicesArray;
+        } else {
+            console.log("Sending a random response from ALL can be new topics");
+            allAvailIndices = getFullDBIndex(true);
+        }
+
+        //var allAvailIndices = getFullDBIndex(true);
 
         spliceRecentlyUsed(allAvailIndices, recent);
 
-        randomIndex = Math.floor(Math.random() * allAvailIndices.length);
+        //randomIndex = Math.floor(Math.random() * allAvailIndices.length);
+
+        randomIndex = getRandomIndex(allAvailIndices.length);
 
         var randResIndex = allAvailIndices[randomIndex];
 
