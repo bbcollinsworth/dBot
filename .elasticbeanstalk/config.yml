@@ -3,6 +3,8 @@ branch-defaults:
     environment: dBot-dev
   master:
     environment: dBot-dev
+  norandomtest:
+    environment: dBot-dev
 global:
   application_name: d.Bot
   default_ec2_keyname: aws-eb

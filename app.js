@@ -619,30 +619,8 @@ io.on('connection', function(socket) {
             if (limitRandomToNextNodes) {
                 console.log("NextNodes limited but no triggers matched");
 
-                // if (nextNodesArray.length > 1) {
-                //     console.log("Checking for special nextnodes...");
-                //     nextNodesArray.forEach(function(nodeIndex) {
-                //         //for (var n in nextNodesArray){
-                //         //NOT WORKING YET
-                //         //var checkIndex = nextNodesArray[n];
-                //         console.log("canBeRandNext is: " + messageArray[nodeIndex].canBeRandomNextNode);
-                //         if (!messageArray[nodeIndex].canBeRandomNextNode) {
-                //             var iToSplice = nextNodesArray.indexOf(nodeIndex);
-                //             console.log("Splicing special nextNode at index: " + iToSplice);
-                //             nextNodesArray.splice(iToSplice, 1);
-                //         }
-                //     });
-                // }
-
-                // console.log("NextNodesArray Length after specialCheck is: " + nextNodesArray.length);
-
                 spliceNonRandomNextNodes(nextNodesArray);
 
-                //var randomIndex = Math.floor(Math.random() * nextNodesArray.length);
-
-                // var randomIndex = getRandomIndex(nextNodesArray.length);
-                // var randomNextNodeIndex = nextNodesArray[randomIndex];
-                // matchedMessage = messageArray[randomNextNodeIndex];
                 matchedMessage = randomResponse(recentArray, nextNodesArray);
                 return matchedMessage;
             } else {
