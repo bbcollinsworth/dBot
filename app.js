@@ -14,7 +14,8 @@ var port = 9000; //process.env.PORT;//9000;app.set('port', process.env.PORT || 3
 // var messageArray = [];
 // var choicesFunc = [];
 
-var responsesBeforeRepeatAllowed = 25;
+var responsesBeforeRepeatAllowed = 35;
+var rerollThreshold = 0.4;
 
 var options = {
     app_id: process.env.PARSE_APP_ID,
@@ -501,7 +502,7 @@ io.on('connection', function(socket) {
 
         console.log("This user's recent messages updated: ");
         console.log("RecentMessages new length: " + _user.recentMessages.length);
-        console.log(_user.recentMessages);
+        console.log("Most recent is: " + _user.recentMessages[_user.recentMessages.length - 1].messageText);
     }
 
     function pickNextMessage(_currentMessage, _parsedResponse, _recentMessages) {
@@ -655,17 +656,18 @@ io.on('connection', function(socket) {
             var indexOfNextMessage = matchCounts[0].indexOfMessage;
             matchedMessage = messageArray[indexOfNextMessage];
             if (!matchedMessage.canBeRandomNextNode) {
-                if (Math.random < 0.5) {
+                if (Math.random() > rerollThreshold) {
                     console.log("Matched message special - sending random response instead!");
                     matchedMessage = randomResponse(recentArray, nextNodesArray); // THIS NEEDS TO BE SET
-                    return matchedMessage;
-                } else {
-                    console.log("Matched message special - sending it!");
-                    return matchedMessage;
-                }
-            } else {
+                    //return matchedMessage;
+                } //else {
+                //     console.log("Matched message special - sending it!");
+                //     return matchedMessage;
+                // }
+                console.log("Matched message special - sending it!");
+            } //else {
                 return matchedMessage;
-            }
+            //}
         } else {
             console.log("Picking a matched message from several matched triggers");
             for (var m = 0; m < matchCounts.length; m++) {
@@ -683,15 +685,15 @@ io.on('connection', function(socket) {
             if (limitRandomToNextNodes) {
                 if (!matchedMessage.canBeRandomNextNode) {
                     console.log("I know this message can't be RandomNextNode");
-                    if (Math.random < 0.5) {
+                    if (Math.random() > rerollThreshold) {
                         console.log("Matched message special - sending random response instead!");
                         matchedMessage = randomResponse(recentArray, nextNodesArray); // THIS NEEDS TO BE SET
-                       // return matchedMessage;
+                        // return matchedMessage;
                     } else {
                         console.log("Matched message special - sending it!");
                         //return matchedMessage;
                     }
-                }// else {
+                } // else {
 
                 //}
             }
