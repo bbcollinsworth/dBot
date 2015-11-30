@@ -10,7 +10,7 @@ var Parse = require('node-parse-api').Parse;
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var sentiment = require('sentiment');
-var port = 9000; //process.env.PORT;//9000;app.set('port', process.env.PORT || 3000);
+var port = 8081; //process.env.PORT;//9000;app.set('port', process.env.PORT || 3000);
 // var messageArray = [];
 // var choicesFunc = [];
 
@@ -42,7 +42,7 @@ app.use(function(req, res, next) {
 
 app.use('/', express.static(__dirname + '/public'));
 
-server.listen(process.env.PORT || 9000, function() {
+server.listen(process.env.PORT || port, function() {
     console.log('Server running at port:' + port);
 });
 
@@ -364,7 +364,9 @@ io.on('connection', function(socket) {
     function parseResponse(_userResponse, _userID, _userIndex) {
         console.log("working");
         var response = _userResponse.toLowerCase();
-        var parsedResponse = response.split(/[\s,.?!&:()]+/);
+
+        //TEST THIS WITH '<>'
+        var parsedResponse = response.split(/[\s,.?!&:()<>]+/);
 
         if (response.indexOf("?") !== -1) {
             parsedResponse.push("?");
