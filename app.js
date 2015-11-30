@@ -888,6 +888,10 @@ io.on('connection', function(socket) {
     };
 
     var spliceUser = function(userObj) {
+
+        clearTimeout(delayedRes);
+        clearTimeout(secondDelayedRes);
+        
         var indexToRemove = users.indexOf(userObj);
 
         var socketIndexToRemove = userIDs.indexOf(userObj.socketID);
@@ -918,7 +922,9 @@ io.on('connection', function(socket) {
             }
         }
 
-        pushUserResponses(goneUser, spliceUser);
+        //temporarily removing push of user response data
+        spliceUser(goneUser);
+        //pushUserResponses(goneUser, spliceUser);
 
     });
 

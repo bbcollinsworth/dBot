@@ -18,6 +18,18 @@ h2 {
   color: white;
 }
 
+#trafficAlert {
+  position: fixed;
+  margin: auto;
+  top: 30vh;
+  /* left: 0; */
+  width: 400px;
+  /*width: 38%;*/
+  background: white;
+  box-shadow: 5px 5px 15px 0px rgba(0,0,0,0.2);
+  padding: 10px 30px 10px 30px;
+}
+
 #register {
   position: fixed;
   height: 100vh;
@@ -26,22 +38,22 @@ h2 {
   color: white;
 }
 
-  .regTitle {
-    top: 20%;
-    position: relative;
-    margin: auto;
-    text-align: center;
-  }
+.regTitle {
+  top: 20%;
+  position: relative;
+  margin: auto;
+  text-align: center;
+}
 
 #submissionBlock {
   margin-top: 40%;
   margin-right: 20px;
 /*  margin-left: auto;
-  margin-right: auto;*/
-  display: block;
-  color: white;
-  margin-left: 5%;
-  text-align: left;
+margin-right: auto;*/
+display: block;
+color: white;
+margin-left: 5%;
+text-align: left;
 }
 
 #submissionBlock h1 {
@@ -90,36 +102,36 @@ h2 {
   display: inline;
   width: 50%;
   float: left;
-      text-align: left;
-    padding-left: 12px;
-    margin-top: 0px;
-    font-weight: 900;
-    font-size: 1.5em;
-    margin-left: 0px;
-    color: white;
+  text-align: left;
+  padding-left: 12px;
+  margin-top: 0px;
+  font-weight: 900;
+  font-size: 1.5em;
+  margin-left: 0px;
+  color: white;
 }
 
 #feedDiv {
   display: inline;
-    width: 50%;
-    /*background-color: rgba(255,255,255,0.3);*/
-    padding: 5px;
-    float: right;
+  width: 50%;
+  /*background-color: rgba(255,255,255,0.3);*/
+  padding: 5px;
+  float: right;
 }
 
 #feedBtn {
   border: none !important;
-    /* background: transparent; */
-    background-color: rgba(255,255,255,0.3);
-    color: yellow;
-    font-family: "Open Sans", sans-serif;
-    font-size: 1.2em;
-    font-weight: 900;
-    margin-right: 10px;
-        margin-top: 3px;
-    float: right;
-    padding: 4px 8px 4px 8px;
-        border-radius: 4px;
+  /* background: transparent; */
+  background-color: rgba(255,255,255,0.3);
+  color: yellow;
+  font-family: "Open Sans", sans-serif;
+  font-size: 1.2em;
+  font-weight: 900;
+  margin-right: 10px;
+  margin-top: 3px;
+  float: right;
+  padding: 4px 8px 4px 8px;
+  border-radius: 4px;
 }
 
 .title {
@@ -154,24 +166,24 @@ h2 {
   display: block;  
 }
 
-  #container .chat-log{
-    display: block;
-    /*height: 540px;*/
-    height: calc(100% - 50px);
-    /*height: calc(100vh - 100px);*/
-    /*height: 100%;*/
-    width: 100%;
-    display: block;
-    padding: 0;
-    margin: 0;
-    border: 0;
-  }  
+#container .chat-log{
+  display: block;
+  /*height: 540px;*/
+  height: calc(100% - 50px);
+  /*height: calc(100vh - 100px);*/
+  /*height: 100%;*/
+  width: 100%;
+  display: block;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}  
 
-    #container .chat-log .server-msg {
-      height: 50px;
-    display: block;
-    font-family: "Open Sans", sans-serif;
-    font-size: 0.9em;
+#container .chat-log .server-msg {
+  height: 50px;
+  display: block;
+  font-family: "Open Sans", sans-serif;
+  font-size: 0.9em;
     /*padding-top: 10px;
     padding-bottom: 10px;*/
     /* min-height: 25px; */
@@ -179,73 +191,73 @@ h2 {
     opacity: 0.95;
     background: #CBCBCB;
     border-bottom: 1px solid rgb(130,130,130);
-    }  
+  }  
 
-      #container .chat-log .server-msg .Middle {
-        display: none;
-        margin-top: 0px;
-        font-weight: 900;
-        font-size: 0.9em;
-        margin-left: 0px;
-      }
+  #container .chat-log .server-msg .Middle {
+    display: none;
+    margin-top: 0px;
+    font-weight: 900;
+    font-size: 0.9em;
+    margin-left: 0px;
+  }
 
-      #container .chat-log .server-msg .Messages{
-        padding-left: 7px;
-        /*display:inline;*/
-        float: left;
-        /*color: #0000FF;*/
-        color: #CCCCCC;
-        font-weight: 400;
-        font-size: 0.7;
-      }
+  #container .chat-log .server-msg .Messages{
+    padding-left: 7px;
+    /*display:inline;*/
+    float: left;
+    /*color: #0000FF;*/
+    color: #CCCCCC;
+    font-weight: 400;
+    font-size: 0.7;
+  }
 
-      .Details{
-        float: right;
-        /*display:inline;*/
-        /*color: #0000FF;*/
-        color: #66CC33;
-        font-weight: 400;
-        font-size: 0.7;
-        padding-right: 7px;
-      }
+  .Details{
+    float: right;
+    /*display:inline;*/
+    /*color: #0000FF;*/
+    color: #66CC33;
+    font-weight: 400;
+    font-size: 0.7;
+    padding-right: 7px;
+  }
 
-    #container .chat-log #chat-container {
-      /*height: 600px;*/
-      width: 100%;
-      height: calc(100% - 50px);
-      display: block;
-      padding: 0;
-      margin: 0;
-      border: 0;
-      color: #434343;
-      overflow-y: scroll;
-      text-align: left;
-      /*overflow-y: scroll;*/
-    }  
+  #container .chat-log #chat-container {
+    /*height: 600px;*/
+    width: 100%;
+    height: calc(100% - 50px);
+    display: block;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    color: #434343;
+    overflow-y: scroll;
+    text-align: left;
+    /*overflow-y: scroll;*/
+  }  
 
-.bot-chat {
-	transition-duration: 1s;
-	width: 90%;
-	margin: 10px 0px;
-	//display: inherit;
-}
+  .bot-chat {
+   transition-duration: 1s;
+   width: 90%;
+   margin: 10px 0px;
+   //display: inherit;
+ }
 
-.bot-chat .left {
-	width: 10%;
-  margin-left: 5px;
-	/*display: none;*/
-}
+ .bot-chat .left {
+   width: 10%;
+   margin-left: 5px;
+   /*display: none;*/
+ }
 
-.bot-chat .right {
-	padding-left: 15px;
-  padding-right: 10px;
-  width: 85%;
-  font-size: 1.2em;
-}
+ .bot-chat .right {
+   padding-left: 15px;
+   padding-right: 10px;
+   width: 85%;
+   font-size: 1.2em;
+ }
 
-.user-chat {
-    transition-duration: 1s;
-    /*display: none;*/
+ .user-chat {
+  transition-duration: 1s;
+  /*display: none;*/
   /*opacity: 0;*/
   width: 100%;
   margin: 10px 0px;
@@ -260,9 +272,9 @@ h2 {
 }
 
 .user-chat .right {
-    width: 20%;
-    float: right;
-    margin-top: auto;
+  width: 20%;
+  float: right;
+  margin-top: auto;
   /*display: none;*/
 }
 
@@ -278,10 +290,10 @@ h2 {
   padding: 10px;
   /*border: 3px solid #A6D7FF;*/
   border-radius: 4px;
-    background: -webkit-linear-gradient(left top, #FFFFFF , #F0F0F0); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(bottom right, #FFFFFF, #F0F0F0); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(bottom right, #FFFFFF, #F0F0F0); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(to bottom right, #FFFFFF, #F0F0F0); /* Standard syntax (must be last) */
+  background: -webkit-linear-gradient(left top, #FFFFFF , #F0F0F0); /* For Safari 5.1 to 6.0 */
+  background: -o-linear-gradient(bottom right, #FFFFFF, #F0F0F0); /* For Opera 11.1 to 12.0 */
+  background: -moz-linear-gradient(bottom right, #FFFFFF, #F0F0F0); /* For Firefox 3.6 to 15 */
+  background: linear-gradient(to bottom right, #FFFFFF, #F0F0F0); /* Standard syntax (must be last) */
 }
 
 /*.messageText:after {
@@ -295,38 +307,38 @@ h2 {
   border-color: #A6D7FF transparent;
   display: block;
   width: 0;
-}*/
+  }*/
 
 /*.choices li{
   min-height: 60px;
 	display: inline;
   float: right;
-}*/
+  }*/
 
-.response {
-  font-weight: 320;
-	display: inline;
-  position: relative;
-  transition-duration: 1s;
-  float: right; 
-  clear: none;
-  /*color: #A6D7FF;*/
-  /*background: rgb(32, 102, 165);*/
-  color: black;
-/*  background: #C3DEFF;*/
-  margin: 5px;
-  border: 0px;
-  border-radius: 4px;
-  padding: 5px 10px 5px 10px;
-  font-weight: 400;
-  box-shadow: -0px 5px 8px rgb(182, 182, 182);
-  /*gratuitous gradient background web-kits */
+  .response {
+    font-weight: 320;
+    display: inline;
+    position: relative;
+    transition-duration: 1s;
+    float: right; 
+    clear: none;
+    /*color: #A6D7FF;*/
+    /*background: rgb(32, 102, 165);*/
+    color: black;
+    /*  background: #C3DEFF;*/
+    margin: 5px;
+    border: 0px;
+    border-radius: 4px;
+    padding: 5px 10px 5px 10px;
+    font-weight: 400;
+    box-shadow: -0px 5px 8px rgb(182, 182, 182);
+    /*gratuitous gradient background web-kits */
     background: -webkit-linear-gradient(left top, #D4EAFF , #A4D0FF); /* For Safari 5.1 to 6.0 */
     background: -o-linear-gradient(bottom right, #D4EAFF, #A4D0FF); /* For Opera 11.1 to 12.0 */
     background: -moz-linear-gradient(bottom right, #D4EAFF, #A4D0FF); /* For Firefox 3.6 to 15 */
     background: linear-gradient(to bottom right, #D4EAFF , #A4D0FF); /* Standard syntax (must be last) */
-  /*float: right;*/
-}
+    /*float: right;*/
+  }
 
 /*.choices:after {
 	transition-duration: 1s;
@@ -339,96 +351,96 @@ h2 {
   border-color: rgb(32, 102, 165) transparent;
   display: block;
   width: 0;
-}*/
+  }*/
 
-#container #chat-input {
-	/*position: absolute;*/
-	/*bottom: 0px;*/
-	width: 100%;
-  height: 50px;
-  display: block; 
-	background: #999999;
-  padding: 5px;
-  margin: 0;
-/*  border-right: 0;*/
-  border-top: 1px solid rgb(130,130,130);
-}
+  #container #chat-input {
+   /*position: absolute;*/
+   /*bottom: 0px;*/
+   width: 100%;
+   height: 50px;
+   display: block; 
+   background: #999999;
+   padding: 5px;
+   margin: 0;
+   /*  border-right: 0;*/
+   border-top: 1px solid rgb(130,130,130);
+ }
 
-#chat-input .left {
-	width: 80%;
-  margin-top: 0
-}
+ #chat-input .left {
+   width: 80%;
+   margin-top: 0
+ }
 
-#chat-input .right {
-	width: 18%;
-  height:80%;
-  margin-right: 2%;
-  margin-top: .5%;
-}
+ #chat-input .right {
+   width: 18%;
+   height:80%;
+   margin-right: 2%;
+   margin-top: .5%;
+ }
 
-#js-btn-send {
-	border-radius: 4px;
-  border: 0px;
-	padding: 7px;
-	color: #7c7c7c;
-	width: 100%;
-}
+ #js-btn-send {
+   border-radius: 4px;
+   border: 0px;
+   padding: 7px;
+   color: #7c7c7c;
+   width: 100%;
+ }
 
-#js-ipt-text {
-	width: 97%;
-	outline: none;
-	font-size: 1.25em;
-	padding: 10px;
-	color: #434343;
-  /*height: 20px;*/
-}
+ #js-ipt-text {
+   width: 97%;
+   outline: none;
+   font-size: 1.25em;
+   padding: 10px;
+   color: #434343;
+   /*height: 20px;*/
+ }
 
-.left {
-	float: left;
-}
+ .left {
+   float: left;
+ }
 
-.right {
-	float: right;
-}
+ .right {
+   float: right;
+ }
 
-.clearfix {
-	clear: both;
-}
+ .clearfix {
+   clear: both;
+ }
 
 
-::-webkit-scrollbar {
-      width: 10px;
+ ::-webkit-scrollbar {
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-      background-color: #A6D7FF;
-} /* the new scrollbar will have a flat appearance with the set background color */
- 
-::-webkit-scrollbar-thumb {
-      background-color: rgba(0, 0, 0, 0.2); 
-} /* this will style the thumb, ignoring the track */
- 
+  background-color: #A6D7FF;
+  } /* the new scrollbar will have a flat appearance with the set background color */
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2); 
+    } /* this will style the thumb, ignoring the track */
+
 /*::-webkit-scrollbar-button {
       background-color: #7c2929;
-}*/ /* optionally, you can style the top and the bottom buttons (left and right for horizontal bars) */
- 
-::-webkit-scrollbar-corner {
-      background-color: black;
-}
+      }*/ /* optionally, you can style the top and the bottom buttons (left and right for horizontal bars) */
 
-/*-------------------- MEDIA QUERIES --------------------*/
-@media only screen and (max-width: 750px){
-  #container {
-    width: 100vw;
-    height: 100vh;
-    position: static;
-  }
+      ::-webkit-scrollbar-corner {
+        background-color: black;
+      }
 
-  #submissions {
-    top: 0px;
-    left: 0px;
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-  }
-}
+      /*-------------------- MEDIA QUERIES --------------------*/
+      @media only screen and (max-width: 750px){
+        #container {
+          width: 100vw;
+          height: 100vh;
+          position: static;
+        }
+
+        #submissions {
+          top: 0px;
+          left: 0px;
+          width: 100vw;
+          height: 100vh;
+          position: fixed;
+        }
+      }

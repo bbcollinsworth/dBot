@@ -42,6 +42,11 @@ var destroySubmissions = function() {
     // hash.location = '';
 }
 
+var closeTrafficAlert = function(){
+    $('#trafficAlert').remove();
+    console.log("Traffic alert closed");
+}
+
 //***ALL THE EVENTS FUNCTIONS****
 var attachEvents = function() {
 
