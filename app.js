@@ -3,6 +3,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
+var AWS = require('aws-sdk');
 var dotenv = require('dotenv').load();
 var fs = require('fs');
 var async = require('async');
@@ -13,6 +14,10 @@ var sentiment = require('sentiment');
 var port = 8081; //process.env.PORT;//9000;app.set('port', process.env.PORT || 3000);
 // var messageArray = [];
 // var choicesFunc = [];
+
+var dataFile = require('./responses.json');
+var rawData = dataFile.results;
+console.log("Raw data length is " + rawData.length);
 
 var responsesBeforeRepeatAllowed = 35;
 var rerollThreshold = 0.4;
@@ -178,46 +183,103 @@ io.on('connection', function(socket) {
         keys: 'messageIndex,triggers,messageText,nextNodes,canBeNewTopic,canBeRandomNextNode,category'
     };
 
-    parse.find('responses', query, function(err, res) {
-        console.log("Pulling responses DB for user: " + socket.id);
-        if (err) {
-            console.log('this ain\'t workin');
-            console.log(err);
-        } else {
-            var resResults = res.results;
-            console.log('Number of responses retrieved is ' + resResults.length);
+    var dataKeys = [
+        'messageIndex',
+        'triggers',
+        'messageText',
+        'nextNodes',
+        'canBeNewTopic',
+        'canBeRandomNextNode',
+        'category',
+        'objectId'
+    ];
+
+    //var rawData = js;
+
+    //var responseDB = []; //messageArray
+
+    //for each item we need to add...
+    for (var i = 0; i < rawData.length; i++) {
+        //loop through the raw data...
+        for (var j = 0; j < rawData.length; j++) {
+
+            var thisResponse = rawData[j];
+
+            //if the index of this raw data object equals the index we're ready to add...
+            if (thisResponse.messageIndex == i) {
 
 
-            for (var j = 0; j < resResults.length; j++) {
-                for (var i = 0; i < resResults.length; i++) {
-                    if (resResults[i].messageIndex == j) {
-                        messageArray.push(resResults[i]);
+                var myResObject = {};
+                //copy out the keys we need...
+                for (var k = 0; k < dataKeys.length; k++) {
 
-                    }
+                    var key = dataKeys[k];
+                    //console.log("Trying to add Key " + key + " for item " + i);
+                    myResObject[key] = thisResponse[key];
+
                 }
+
+                // if (i % 30 == 0) {
+                //     console.log("Test Object: " + i);
+                //     console.log(myResObject);
+                // }
+                //add it to our local response database for this user
+                messageArray.push(myResObject);
             }
-
-            for (var i = 0; i < messageArray.length; i++) {
-                // console.log("Message ObjectID is:" + messageArray[i].objectId);
-                //console.log("True index is: " + i);
-                //console.log("Message index is:" + messageArray[i].messageIndex);
-                //console.log("True index is: " + i);
-                // messageArray[i].messageIndex = i;
-                // console.log("New message index is:" + messageArray[i].messageIndex);
-                // console.log("New true index is: " + i);
-            }
-
-
-            // console.log(messageArray[i].messageText);
-            if (messageArray.length == resResults.length) {
-                console.log('Parse pull Successful!');
-            }
-
-            sendStartMsg();
-            return;
         }
 
-    });
+
+    }
+
+    if (messageArray.length == rawData.length) {
+        console.log('Parse pull Successful!');
+    } else {
+        console.log('DB pull messed up!');
+    }
+
+    sendStartMsg();
+    //return;
+
+    // parse.find('responses', query, function(err, res) {
+    //     console.log("Pulling responses DB for user: " + socket.id);
+    //     if (err) {
+    //         console.log('this ain\'t workin');
+    //         console.log(err);
+    //     } else {
+    //         var resResults = res.results;
+    //         console.log('Number of responses retrieved is ' + resResults.length);
+
+
+    //         for (var j = 0; j < resResults.length; j++) {
+    //             for (var i = 0; i < resResults.length; i++) {
+    //                 if (resResults[i].messageIndex == j) {
+    //                     messageArray.push(resResults[i]);
+
+    //                 }
+    //             }
+    //         }
+
+    //         for (var i = 0; i < messageArray.length; i++) {
+    //             // console.log("Message ObjectID is:" + messageArray[i].objectId);
+    //             //console.log("True index is: " + i);
+    //             //console.log("Message index is:" + messageArray[i].messageIndex);
+    //             //console.log("True index is: " + i);
+    //             // messageArray[i].messageIndex = i;
+    //             // console.log("New message index is:" + messageArray[i].messageIndex);
+    //             // console.log("New true index is: " + i);
+    //         }
+
+
+    //         // console.log(messageArray[i].messageText);
+    //         if (messageArray.length == resResults.length) {
+    //             console.log('Parse pull Successful!');
+    //         }
+
+    //         sendStartMsg();
+    //         return;
+    //     }
+
+    // });
 
     function sendStartMsg() {
         setTimeout(function() {
@@ -646,7 +708,7 @@ io.on('connection', function(socket) {
                 // }
                 console.log("Matched message special - sending it!");
             } //else {
-                return matchedMessage;
+            return matchedMessage;
             //}
         } else {
             console.log("Picking a matched message from several matched triggers");
@@ -891,7 +953,7 @@ io.on('connection', function(socket) {
 
         clearTimeout(delayedRes);
         clearTimeout(secondDelayedRes);
-        
+
         var indexToRemove = users.indexOf(userObj);
 
         var socketIndexToRemove = userIDs.indexOf(userObj.socketID);
