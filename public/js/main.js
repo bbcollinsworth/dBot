@@ -149,7 +149,9 @@ var fillTemplate = function(v) {
         scrollTop: $('#messages-container').innerHeight()
     }, 500);
 
-    var responseID = '#' + v + increment;
+    var shortID = v.substring(0,8).replace(/[^a-z]/gi,"-");
+
+    var responseID = '#' + shortID + increment;
     console.log(responseID);
     increment = increment + 1;
 
