@@ -1,0 +1,14 @@
+branch-defaults:
+  default:
+    environment: dBot-dev
+  master:
+    environment: dBot-dev
+  norandomtest:
+    environment: dBot-dev
+global:
+  application_name: d.Bot
+  default_ec2_keyname: aws-eb
+  default_platform: 64bit Amazon Linux 2015.03 v2.0.1 running Node.js
+  default_region: us-east-1
+  profile: eb-cli
+  sc: null
